@@ -1,0 +1,427 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ExtSieve.App.ViewModels"
+        xmlns:controls="using:ExtSieve.App.Controls"
+        xmlns:views="using:ExtSieve.App.Views"
+        mc:Ignorable="d"
+        d:DesignWidth="900" d:DesignHeight="700"
+        x:Class="ExtSieve.App.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="900" Height="700" MinWidth="700" MinHeight="620" FontSize="14"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
+        Icon="avares://ExtSieve.App/Assets/extsieve-app-icon.png"
+        Title="{Binding AppTitle}">
+  <Window.Styles>
+    <Style Selector="Border.card">
+      <Setter Property="Padding" Value="12" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Border.summaryCard">
+      <Setter Property="Padding" Value="13,11" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SubtleBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Border.segmentGroup">
+      <Setter Property="Background" Value="{DynamicResource InputSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="Border.statusBar">
+      <Setter Property="Padding" Value="16,2" />
+      <Setter Property="Background" Value="{DynamicResource StatusBarBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+    <Style Selector="TextBlock.metric">
+      <Setter Property="FontSize" Value="21" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.secondary">
+      <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="MinHeight" Value="36" />
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.secondary">
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="5" />
+    </Style>
+    <Style Selector="Button.secondary:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderHoverBrush}" />
+    </Style>
+    <Style Selector="Button.secondary:pressed">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlPressedBrush}" />
+    </Style>
+    <Style Selector="Button.secondary:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+      <Setter Property="Background" Value="{DynamicResource DisabledSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="MinHeight" Value="40" />
+      <Setter Property="MinWidth" Value="128" />
+      <Setter Property="Padding" Value="20,8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+      <Setter Property="Background" Value="{DynamicResource AccentStrongBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentStrongBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Button.primary:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+    </Style>
+    <Style Selector="Button.primary:pressed">
+      <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentPressedBrush}" />
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentPressedBrush}" />
+    </Style>
+    <Style Selector="Button.primary:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+      <Setter Property="Background" Value="{DynamicResource DisabledSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DisabledSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+    </Style>
+    <Style Selector="Button.sourceSegment">
+      <Setter Property="MinHeight" Value="42" />
+      <Setter Property="Padding" Value="13,7" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1,0,0,0" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="Button.sourceSegment:pointerover, Button.iconButton:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlHoverBrush}" />
+    </Style>
+    <Style Selector="Button.sourceSegment:pressed, Button.iconButton:pressed">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlPressedBrush}" />
+    </Style>
+    <Style Selector="Button.iconButton">
+      <Setter Property="Width" Value="30" />
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="Padding" Value="5" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="Button.tableHeader">
+      <Setter Property="MinHeight" Value="38" />
+      <Setter Property="Padding" Value="11,0" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="Button.tableHeader:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlHoverBrush}" />
+    </Style>
+    <Style Selector="TextBox.pathBox">
+      <Setter Property="MinHeight" Value="42" />
+      <Setter Property="Padding" Value="12,7" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="RadioButton.segment">
+      <Setter Property="MinHeight" Value="38" />
+      <Setter Property="Padding" Value="15,7" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="RadioButton.segment:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderHoverBrush}" />
+    </Style>
+    <Style Selector="RadioButton.segment:checked">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="RadioButton.segment:checked:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SelectionHoverBrush}" />
+    </Style>
+    <Style Selector="Button:focus-visible, RadioButton:focus-visible, ComboBox:focus-visible, TextBox:focus-visible, CheckBox:focus-visible">
+      <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="*,Auto">
+    <Grid IsVisible="{Binding IsMainViewOpen}" Margin="18,14,18,12"
+          RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="10">
+      <TextBlock Grid.Row="0" VerticalAlignment="Center" FontSize="18" FontWeight="Medium"
+                 Text="{Binding AppPurpose}" TextWrapping="Wrap" />
+
+      <Border Grid.Row="1" Classes="segmentGroup">
+        <Grid ColumnDefinitions="*,Auto">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox Classes="pathBox" Text="{Binding SourcePath}"
+                     PlaceholderText="{Binding SourcePlaceholder}" IsReadOnly="True"
+                     ToolTip.Tip="{Binding SourcePath}"
+                     AutomationProperties.Name="{Binding SourceLabel}" />
+            <Button Grid.Column="1" Classes="iconButton" Width="42" MinHeight="42"
+                    BorderThickness="1,0,0,0" CornerRadius="0"
+                    IsVisible="{Binding HasSource}" Command="{Binding ScanAgainCommand}"
+                    ToolTip.Tip="{Binding ScanAgainLabel}"
+                    AutomationProperties.Name="{Binding ScanAgainLabel}">
+              <controls:TablerIcon Width="19" Height="19" Data="{StaticResource TablerRefresh}" />
+            </Button>
+          </Grid>
+          <Button x:Name="ChooseFolderButton" Grid.Column="1" Classes="sourceSegment"
+                  Command="{Binding ChooseFolderCommand}"
+                  AutomationProperties.Name="{Binding ChooseFolderLabel}">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerFolder}" />
+              <TextBlock VerticalAlignment="Center" Text="{Binding ChooseFolderLabel}" />
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="9">
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="9" IsVisible="{Binding HasScanSummary}">
+          <Border Classes="summaryCard">
+            <Grid ColumnDefinitions="34,*" ColumnSpacing="9">
+              <controls:TablerIcon Width="25" Height="25" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}" Data="{StaticResource TablerFile}" />
+              <StackPanel Grid.Column="1"><TextBlock Classes="metric" Text="{Binding TotalFilesDisplay}" /><TextBlock Classes="secondary" Text="{Binding FilesLabel}" /></StackPanel>
+            </Grid>
+          </Border>
+          <Border Grid.Column="1" Classes="summaryCard">
+            <Grid ColumnDefinitions="34,*" ColumnSpacing="9">
+              <controls:TablerIcon Width="25" Height="25" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}" Data="{StaticResource TablerStack}" />
+              <StackPanel Grid.Column="1"><TextBlock Classes="metric" Text="{Binding TotalGroupsDisplay}" /><TextBlock Classes="secondary" Text="{Binding ExtensionsLabel}" /></StackPanel>
+            </Grid>
+          </Border>
+          <Border Grid.Column="2" Classes="summaryCard">
+            <Grid ColumnDefinitions="34,*" ColumnSpacing="9">
+              <controls:TablerIcon Width="25" Height="25" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}" Data="{StaticResource TablerArchive}" />
+              <StackPanel Grid.Column="1"><TextBlock Classes="metric" Text="{Binding TotalBytesDisplay}" /><TextBlock Classes="secondary" Text="{Binding TotalSizeLabel}" /></StackPanel>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <Border Grid.RowSpan="2" Classes="card" IsVisible="{Binding ShowsEmptyState}">
+          <StackPanel MaxWidth="500" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+            <Border Width="60" Height="60" CornerRadius="30" HorizontalAlignment="Center" Background="{DynamicResource AccentSubtleBrush}">
+              <controls:TablerIcon Width="30" Height="30" Foreground="{DynamicResource AccentBrush}" Data="{StaticResource TablerFolder}" />
+            </Border>
+            <TextBlock HorizontalAlignment="Center" FontSize="21" FontWeight="SemiBold" Text="{Binding EmptyStateTitle}" />
+            <TextBlock Classes="secondary" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding EmptyStateDescription}" />
+            <Button Classes="primary" Margin="0,6,0,0" HorizontalAlignment="Center" Command="{Binding ChooseFolderCommand}" AutomationProperties.Name="{Binding ChooseFolderLabel}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <controls:TablerIcon Width="18" Height="18" Foreground="{DynamicResource AccentTextBrush}" Data="{StaticResource TablerFolder}" />
+                <TextBlock VerticalAlignment="Center" Text="{Binding ChooseFolderLabel}" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Classes="card" Padding="0" IsVisible="{Binding HasResults}">
+          <Grid RowDefinitions="Auto,Auto,*">
+            <Grid Margin="8,7" ColumnDefinitions="*,280">
+              <Border Grid.Column="1" Classes="segmentGroup" MinHeight="36">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBox x:Name="FilterTextBox" MinHeight="36" Padding="10,5,38,5"
+                           VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0"
+                           Text="{Binding FilterText}" PlaceholderText="{Binding FilterPlaceholder}"
+                           AutomationProperties.Name="{Binding FilterPlaceholder}" />
+                  <Button Grid.Column="1" Classes="iconButton" Width="32" Margin="0,2,2,2"
+                          IsVisible="{Binding IsFilterClearVisible}"
+                          Command="{Binding ClearFilterCommand}" Click="OnClearFilterClick"
+                          ToolTip.Tip="{Binding ClearFilterLabel}"
+                          AutomationProperties.Name="{Binding ClearFilterLabel}">
+                    <controls:TablerIcon Width="16" Height="16" Data="{StaticResource TablerX}" />
+                  </Button>
+                </Grid>
+              </Border>
+            </Grid>
+            <Border Grid.Row="1" Background="{DynamicResource ElevatedSurfaceBrush}" BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="0,1">
+              <Grid ColumnDefinitions="46,*,122,140">
+                <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsThreeState="True"
+                          IsChecked="{Binding AllGroupsSelectionState, Mode=OneWay}" Command="{Binding ToggleAllSelectionCommand}"
+                          ToolTip.Tip="{Binding SelectionToggleToolTip}" AutomationProperties.Name="{Binding SelectionToggleAccessibleName}" />
+                <Button Grid.Column="1" Classes="tableHeader" Command="{Binding SortByExtensionCommand}" AutomationProperties.Name="{Binding ExtensionHeaderAccessibleName}">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="{Binding ExtensionHeader}" />
+                    <controls:TablerIcon Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsExtensionSortAscending}" Data="{StaticResource TablerChevronUp}" />
+                    <controls:TablerIcon Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsExtensionSortDescending}" Data="{StaticResource TablerChevronDown}" />
+                  </StackPanel>
+                </Button>
+                <Button Grid.Column="2" Classes="tableHeader" Command="{Binding SortByFileCountCommand}" AutomationProperties.Name="{Binding FileCountHeaderAccessibleName}">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="{Binding FileCountHeader}" />
+                    <controls:TablerIcon Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsFileCountSortAscending}" Data="{StaticResource TablerChevronUp}" />
+                    <controls:TablerIcon Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsFileCountSortDescending}" Data="{StaticResource TablerChevronDown}" />
+                  </StackPanel>
+                </Button>
+                <Button Grid.Column="3" Classes="tableHeader" Command="{Binding SortBySizeCommand}" AutomationProperties.Name="{Binding SizeHeaderAccessibleName}">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="{Binding SizeHeader}" />
+                    <controls:TablerIcon Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsSizeSortAscending}" Data="{StaticResource TablerChevronUp}" />
+                    <controls:TablerIcon Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsSizeSortDescending}" Data="{StaticResource TablerChevronDown}" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+            </Border>
+            <ListBox Grid.Row="2" ItemsSource="{Binding Groups.VisibleRows}" Background="Transparent" BorderThickness="0" SelectionMode="Multiple">
+              <ListBox.Styles>
+                <Style x:DataType="vm:ExtensionGroupRowViewModel" Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="0" /><Setter Property="MinHeight" Value="37" />
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="Background" Value="Transparent" />
+                  <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                  <Setter Property="AutomationProperties.Name" Value="{Binding DisplayLabel}" />
+                </Style>
+                <Style Selector="ListBoxItem:nth-child(2n)"><Setter Property="Background" Value="{DynamicResource AlternateRowBrush}" /></Style>
+                <Style Selector="ListBoxItem:pointerover"><Setter Property="Background" Value="{DynamicResource RowHoverBrush}" /></Style>
+                <Style Selector="ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource SelectionBrush}" /></Style>
+                <Style Selector="ListBoxItem:selected:pointerover"><Setter Property="Background" Value="{DynamicResource SelectionHoverBrush}" /></Style>
+              </ListBox.Styles>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ExtensionGroupRowViewModel">
+                  <Border BorderBrush="{DynamicResource RowSeparatorBrush}" BorderThickness="0,0,0,1">
+                    <Grid MinHeight="37" ColumnDefinitions="46,*,122,140">
+                      <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding IsSelected}" AutomationProperties.Name="{Binding DisplayLabel}" />
+                      <TextBlock Grid.Column="1" Margin="11,0" VerticalAlignment="Center" Text="{Binding DisplayLabel}" />
+                      <TextBlock Grid.Column="2" Margin="11,0" VerticalAlignment="Center" Text="{Binding FileCountDisplay}" />
+                      <TextBlock Grid.Column="3" Margin="11,0" VerticalAlignment="Center" Text="{Binding TotalBytesDisplay}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <Border Grid.Row="3" Classes="card" IsVisible="{Binding HasResults}" IsEnabled="{Binding CanEditArchiveOptions}">
+        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="110,*" ColumnSpacing="12" RowSpacing="9">
+          <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{Binding ArchiveLayoutLabel}" />
+          <Border x:Name="ArchiveModeGroup" Grid.Column="1" Classes="segmentGroup" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" Spacing="0">
+              <RadioButton x:Name="PreserveStructureRadioButton" Classes="segment" GroupName="ArchiveMode" BorderThickness="0" CornerRadius="0"
+                           IsChecked="{Binding PreserveStructure, Mode=TwoWay}" IsTabStop="{Binding PreserveStructure}"
+                           AutomationProperties.Name="{Binding PreserveStructureLabel}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <controls:TablerIcon Width="17" Height="17" Data="{StaticResource TablerFolder}" />
+                  <TextBlock VerticalAlignment="Center" Text="{Binding PreserveStructureLabel}" />
+                </StackPanel>
+              </RadioButton>
+              <Border Width="1" Background="{DynamicResource BorderBrush}" />
+              <RadioButton x:Name="FlattenRadioButton" Classes="segment" GroupName="ArchiveMode" BorderThickness="0" CornerRadius="0"
+                           IsChecked="{Binding Flatten, Mode=TwoWay}" IsTabStop="{Binding Flatten}"
+                           AutomationProperties.Name="{Binding FlattenLabel}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <controls:TablerIcon Width="17" Height="17" Data="{StaticResource TablerFiles}" />
+                  <TextBlock VerticalAlignment="Center" Text="{Binding FlattenLabel}" />
+                </StackPanel>
+              </RadioButton>
+            </StackPanel>
+          </Border>
+          <TextBlock Grid.Row="1" FontWeight="SemiBold" VerticalAlignment="Center" Text="{Binding OutputLabel}" />
+          <Border Grid.Row="1" Grid.Column="1" Classes="segmentGroup">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBox Classes="pathBox" Text="{Binding OutputPath}" IsReadOnly="True" ToolTip.Tip="{Binding OutputPath}" AutomationProperties.Name="{Binding OutputLabel}" />
+              <Button Grid.Column="1" Classes="sourceSegment" MinWidth="98" Command="{Binding BrowseOutputCommand}" AutomationProperties.Name="{Binding BrowseLabel}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerFolder}" />
+                  <TextBlock VerticalAlignment="Center" Text="{Binding BrowseLabel}" />
+                </StackPanel>
+              </Button>
+            </Grid>
+          </Border>
+          <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <TextBlock Classes="secondary" Margin="0,8,10,0" VerticalAlignment="Center" Text="{Binding SelectionSummary}" TextWrapping="Wrap" />
+            <Button Grid.Column="1" Classes="secondary" Margin="0,4,0,0" IsVisible="{Binding IsSuccess}"
+                    Command="{Binding OpenDestinationFolderCommand}" Content="{Binding OpenDestinationFolderLabel}" />
+            <Button Grid.Column="2" Classes="primary" Margin="0,4,0,0" Command="{Binding CreateArchiveCommand}"
+                    Content="{Binding SaveLabel}" AutomationProperties.Name="{Binding SaveLabel}" />
+          </Grid>
+        </Grid>
+      </Border>
+
+      <StackPanel Grid.Row="4" Spacing="5">
+        <TextBlock Classes="secondary" IsVisible="{Binding IsSuccess}" Text="{Binding SuccessSummary}" TextWrapping="Wrap" />
+        <Expander IsVisible="{Binding IsError}" Header="{Binding TechnicalDetailsLabel}">
+          <TextBox MaxHeight="90" AcceptsReturn="True" IsReadOnly="True" Text="{Binding TechnicalDetails}" TextWrapping="Wrap" />
+        </Expander>
+      </StackPanel>
+    </Grid>
+
+    <views:SettingsView x:Name="SettingsPage" IsVisible="{Binding IsSettingsViewOpen}" />
+
+    <Border Grid.Row="1" Classes="statusBar">
+      <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+        <ProgressBar Grid.Row="0" Grid.ColumnSpan="3" Height="3" Margin="-16,-2,-16,2"
+                     IsVisible="{Binding IsProgressVisible}" IsIndeterminate="{Binding IsScanning}"
+                     Maximum="{Binding ArchiveProgressMaximum}" Value="{Binding ArchiveProgressValue}" AutomationProperties.Name="{Binding StatusText}" />
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="2">
+          <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+          <TextBlock IsVisible="{Binding HasWarnings}" Foreground="{DynamicResource WarningBrush}" Text="{Binding WarningSummary}" TextWrapping="Wrap" />
+          <TextBlock IsVisible="{Binding HasSettingsWarning}" Foreground="{DynamicResource WarningBrush}" Text="{Binding SettingsWarning}" TextWrapping="Wrap" />
+        </StackPanel>
+        <Button Grid.Row="1" Grid.Column="1" Classes="secondary" MinHeight="28" Padding="9,3" IsVisible="{Binding IsBusy}"
+                Command="{Binding CancelCommand}" Content="{Binding CancelLabel}" />
+        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="8">
+          <Border Width="1" Margin="2,0" Background="{DynamicResource BorderBrush}" />
+          <Button x:Name="SettingsButton" Classes="iconButton" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="{Binding SettingsLabel}"
+                  AutomationProperties.Name="{Binding SettingsLabel}">
+            <controls:TablerIcon Width="17" Height="17" Data="{StaticResource TablerSettings}" />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

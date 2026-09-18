@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="AppTitle" xml:space="preserve">
+    <value>ExtSieve</value>
+  </data>
+  <data name="AppPurpose" xml:space="preserve">
+    <value>Create focused archives by selecting file-extension groups.</value>
+  </data>
+  <data name="FoundationStatus" xml:space="preserve">
+    <value>The application foundation is ready.</value>
+  </data>
+  <data name="NoExtension" xml:space="preserve">
+    <value>No extension</value>
+  </data>
+  <data name="LanguageSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageItalian" xml:space="preserve">
+    <value>Italiano</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve"><value>Deutsch</value></data>
+  <data name="LanguageFrench" xml:space="preserve"><value>Français</value></data>
+  <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
+  <data name="LanguagePortugueseBrazil" xml:space="preserve"><value>Português (Brasil)</value></data>
+  <data name="ThemeSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="ChooseAnotherFolder" xml:space="preserve"><value>Choose another folder</value></data>
+  <data name="ChooseFolder" xml:space="preserve"><value>Choose folder</value></data>
+  <data name="ScanAgain" xml:space="preserve"><value>Scan again</value></data>
+  <data name="SourceFolder" xml:space="preserve"><value>Source folder</value></data>
+  <data name="NoSourceSelected" xml:space="preserve"><value>No source folder selected</value></data>
+  <data name="EmptyStateTitle" xml:space="preserve"><value>Start with a source folder</value></data>
+  <data name="EmptyStateDescription" xml:space="preserve"><value>Choose a folder and ExtSieve will group its files by extension, ready for a targeted ZIP archive.</value></data>
+  <data name="Files" xml:space="preserve"><value>Files</value></data>
+  <data name="Extensions" xml:space="preserve"><value>Extensions</value></data>
+  <data name="TotalSize" xml:space="preserve"><value>Total size</value></data>
+  <data name="SelectAllGroups" xml:space="preserve"><value>Select all extension groups</value></data>
+  <data name="SelectAllGroupsToolTip" xml:space="preserve"><value>Select every extension group, including filtered groups</value></data>
+  <data name="SelectAllGroupsPartialToolTip" xml:space="preserve"><value>Some extension groups are selected; select every group, including filtered groups</value></data>
+  <data name="ClearAllGroups" xml:space="preserve"><value>Clear all extension groups</value></data>
+  <data name="ClearAllGroupsToolTip" xml:space="preserve"><value>Clear every extension group, including filtered groups</value></data>
+  <data name="FilterExtensions" xml:space="preserve"><value>Filter extensions</value></data>
+  <data name="ClearFilter" xml:space="preserve"><value>Clear filter</value></data>
+  <data name="Extension" xml:space="preserve"><value>Extension</value></data>
+  <data name="Size" xml:space="preserve"><value>Size</value></data>
+  <data name="ArchiveLayout" xml:space="preserve"><value>Archive layout</value></data>
+  <data name="PreserveStructure" xml:space="preserve"><value>Keep folder structure</value></data>
+  <data name="Flatten" xml:space="preserve"><value>Put all files together</value></data>
+  <data name="Output" xml:space="preserve"><value>Output</value></data>
+  <data name="Browse" xml:space="preserve"><value>Browse</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeDescription" xml:space="preserve"><value>Choose how ExtSieve looks on your system.</value></data>
+  <data name="LanguageDescription" xml:space="preserve"><value>Choose the language used in the interface.</value></data>
+  <data name="BackToMainView" xml:space="preserve"><value>Back to main view</value></data>
+  <data name="About" xml:space="preserve"><value>About</value></data>
+  <data name="AboutName" xml:space="preserve"><value>Name</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>Version</value></data>
+  <data name="AboutBuildInfo" xml:space="preserve"><value>Commit / build info</value></data>
+  <data name="AboutUpdates" xml:space="preserve"><value>Updates</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>License</value></data>
+  <data name="AboutReleasePage" xml:space="preserve"><value>Release page</value></data>
+  <data name="AboutSupportProject" xml:space="preserve"><value>Support the project</value></data>
+  <data name="AboutThirdPartyNotices" xml:space="preserve"><value>Third-party notices</value></data>
+  <data name="UnavailableValue" xml:space="preserve"><value>-</value></data>
+  <data name="OpenLicense" xml:space="preserve"><value>Open license document</value></data>
+  <data name="OpenReleasePage" xml:space="preserve"><value>Open release page</value></data>
+  <data name="DonateOnKofi" xml:space="preserve"><value>Donate on Ko-fi</value></data>
+  <data name="OpenThirdPartyNotices" xml:space="preserve"><value>Open notices</value></data>
+  <data name="AboutValueAccessibleNameFormat" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="ExternalResourceOpenWarning" xml:space="preserve"><value>The requested document or link could not be opened.</value></data>
+  <data name="TechnicalDetails" xml:space="preserve"><value>Technical details</value></data>
+  <data name="OpenDestinationFolder" xml:space="preserve"><value>Open destination folder</value></data>
+  <data name="WarningSummaryFormat" xml:space="preserve"><value>{0:N0} paths could not be included. Accessible files remain available.</value></data>
+  <data name="StatusNoSource" xml:space="preserve"><value>Choose a folder to scan its files.</value></data>
+  <data name="StatusScanningFormat" xml:space="preserve"><value>Scanning… {0:N0} files found</value></data>
+  <data name="StatusEmptyResult" xml:space="preserve"><value>No files were found. Choose another folder or scan again.</value></data>
+  <data name="StatusResults" xml:space="preserve"><value>Scan complete. Select one or more extension groups.</value></data>
+  <data name="StatusResultsWithWarnings" xml:space="preserve"><value>Scan complete with warnings. Review the summary and continue with accessible files.</value></data>
+  <data name="StatusCreatingFormat" xml:space="preserve"><value>Creating archive… {0:N0} of {1:N0} files complete</value></data>
+  <data name="StatusCancelled" xml:space="preserve"><value>Operation cancelled. No partial archive was kept.</value></data>
+  <data name="StatusSuccess" xml:space="preserve"><value>Archive created successfully.</value></data>
+  <data name="StatusError" xml:space="preserve"><value>The operation could not be completed. Review the technical details and try again.</value></data>
+  <data name="StatusSettings" xml:space="preserve"><value>Ready. Configure your preferences.</value></data>
+  <data name="SelectionSummaryFormat" xml:space="preserve"><value>{0:N0} extensions · {1:N0} files · {2} · {3:N0} filename conflicts</value></data>
+  <data name="SuccessSummaryFormat" xml:space="preserve"><value>{0:N0} files · {1} ZIP · {2} seconds · {3}</value></data>
+  <data name="SortAscending" xml:space="preserve"><value>ascending</value></data>
+  <data name="SortDescending" xml:space="preserve"><value>descending</value></data>
+  <data name="ChooseFolderDialogTitle" xml:space="preserve"><value>Choose source folder</value></data>
+  <data name="ChooseOutputDialogTitle" xml:space="preserve"><value>Choose ZIP destination</value></data>
+  <data name="ReplaceArchiveTitle" xml:space="preserve"><value>Replace existing archive?</value></data>
+  <data name="ReplaceArchiveMessageFormat" xml:space="preserve"><value>An archive already exists at {0}. Replace it only after the new archive is complete?</value></data>
+  <data name="Replace" xml:space="preserve"><value>Replace</value></data>
+  <data name="SettingsSaveWarning" xml:space="preserve"><value>The preference changed for this session but could not be saved.</value></data>
+</root>

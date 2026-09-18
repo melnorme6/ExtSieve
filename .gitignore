@@ -1,0 +1,44 @@
+# .NET build output
+[Bb]in/
+[Oo]bj/
+artifacts/
+publish/
+
+# Tests and coverage
+TestResults/
+coverage/
+coverage.*
+*.trx
+
+# IDE state
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pfx
+*.snk
+
+# Logs, dumps, and databases
+*.log
+*.dmp
+*.db
+*.sqlite
+*.sqlite3
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini

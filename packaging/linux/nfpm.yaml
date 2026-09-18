@@ -1,0 +1,72 @@
+name: extsieve
+arch: amd64
+platform: linux
+version: ${EXTSIEVE_VERSION}
+version_schema: semver
+release: "1"
+section: utils
+priority: optional
+maintainer: Giuseppe Russo <extsieve@outlook.com>
+description: |
+  Filter files by extension and create focused ZIP archives.
+  ExtSieve is a local desktop utility with deterministic archive planning,
+  safe transactional output, six interface languages, and Light/Dark themes.
+vendor: Giuseppe Russo
+homepage: https://github.com/melnorme6
+license: MIT
+mtime: "1970-01-01T00:00:00Z"
+
+depends:
+  - ca-certificates
+  - libc6 (>= 2.27)
+  - libgcc-s1
+  - libgssapi-krb5-2
+  - libstdc++6
+  - libicu70 | libicu72 | libicu74 | libicu76 | libicu78
+  - libssl3t64 | libssl3
+  - tzdata
+  - libx11-6
+  - libice6
+  - libsm6
+  - libfontconfig1
+
+contents:
+  - src: ${EXTSIEVE_PACKAGE_ROOT}/usr/lib/extsieve/
+    dst: /usr/lib/extsieve
+    type: tree
+    expand: true
+  - src: ${EXTSIEVE_PACKAGE_ROOT}/usr/bin/extsieve
+    dst: /usr/bin/extsieve
+    expand: true
+    file_info:
+      mode: 0755
+  - src: ${EXTSIEVE_PACKAGE_ROOT}/usr/share/applications/extsieve.desktop
+    dst: /usr/share/applications/extsieve.desktop
+    expand: true
+    file_info:
+      mode: 0644
+  - src: ${EXTSIEVE_PACKAGE_ROOT}/usr/share/icons/hicolor/256x256/apps/extsieve.png
+    dst: /usr/share/icons/hicolor/256x256/apps/extsieve.png
+    expand: true
+    file_info:
+      mode: 0644
+  - src: ${EXTSIEVE_PACKAGE_ROOT}/usr/share/doc/extsieve/
+    dst: /usr/share/doc/extsieve
+    type: tree
+    expand: true
+
+overrides:
+  rpm:
+    depends:
+      - ca-certificates
+      - glibc >= 2.27
+      - libgcc
+      - libstdc++
+      - krb5-libs
+      - libicu
+      - openssl-libs
+      - tzdata
+      - libX11
+      - libICE
+      - libSM
+      - fontconfig

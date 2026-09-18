@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>ExtSieve</value></data>
+  <data name="AppPurpose" xml:space="preserve"><value>Erstellen Sie gezielte Archive, indem Sie Dateierweiterungsgruppen auswählen.</value></data>
+  <data name="FoundationStatus" xml:space="preserve"><value>Die Anwendungsgrundlage ist bereit.</value></data>
+  <data name="NoExtension" xml:space="preserve"><value>Keine Erweiterung</value></data>
+  <data name="LanguageSystem" xml:space="preserve"><value>System</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="LanguageItalian" xml:space="preserve"><value>Italiano</value></data>
+  <data name="LanguageGerman" xml:space="preserve"><value>Deutsch</value></data>
+  <data name="LanguageFrench" xml:space="preserve"><value>Français</value></data>
+  <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
+  <data name="LanguagePortugueseBrazil" xml:space="preserve"><value>Português (Brasil)</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Hell</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dunkel</value></data>
+  <data name="ChooseAnotherFolder" xml:space="preserve"><value>Anderen Ordner auswählen</value></data>
+  <data name="ChooseFolder" xml:space="preserve"><value>Ordner auswählen</value></data>
+  <data name="ScanAgain" xml:space="preserve"><value>Erneut scannen</value></data>
+  <data name="SourceFolder" xml:space="preserve"><value>Quellordner</value></data>
+  <data name="NoSourceSelected" xml:space="preserve"><value>Kein Quellordner ausgewählt</value></data>
+  <data name="EmptyStateTitle" xml:space="preserve"><value>Beginnen Sie mit einem Quellordner</value></data>
+  <data name="EmptyStateDescription" xml:space="preserve"><value>Wählen Sie einen Ordner aus. ExtSieve gruppiert dessen Dateien nach Erweiterung für ein gezieltes ZIP-Archiv.</value></data>
+  <data name="Files" xml:space="preserve"><value>Dateien</value></data>
+  <data name="Extensions" xml:space="preserve"><value>Erweiterungen</value></data>
+  <data name="TotalSize" xml:space="preserve"><value>Gesamtgröße</value></data>
+  <data name="SelectAllGroups" xml:space="preserve"><value>Alle Erweiterungsgruppen auswählen</value></data>
+  <data name="SelectAllGroupsToolTip" xml:space="preserve"><value>Alle Erweiterungsgruppen auswählen, auch gefilterte Gruppen</value></data>
+  <data name="SelectAllGroupsPartialToolTip" xml:space="preserve"><value>Einige Erweiterungsgruppen sind ausgewählt; alle Gruppen auswählen, auch gefilterte Gruppen</value></data>
+  <data name="ClearAllGroups" xml:space="preserve"><value>Auswahl aller Erweiterungsgruppen aufheben</value></data>
+  <data name="ClearAllGroupsToolTip" xml:space="preserve"><value>Auswahl aller Erweiterungsgruppen aufheben, auch der gefilterten Gruppen</value></data>
+  <data name="FilterExtensions" xml:space="preserve"><value>Erweiterungen filtern</value></data>
+  <data name="ClearFilter" xml:space="preserve"><value>Filter löschen</value></data>
+  <data name="Extension" xml:space="preserve"><value>Erweiterung</value></data>
+  <data name="Size" xml:space="preserve"><value>Größe</value></data>
+  <data name="ArchiveLayout" xml:space="preserve"><value>Archivstruktur</value></data>
+  <data name="PreserveStructure" xml:space="preserve"><value>Ordnerstruktur beibehalten</value></data>
+  <data name="Flatten" xml:space="preserve"><value>Alle Dateien zusammenführen</value></data>
+  <data name="Output" xml:space="preserve"><value>Ausgabe</value></data>
+  <data name="Browse" xml:space="preserve"><value>Durchsuchen</value></data>
+  <data name="Save" xml:space="preserve"><value>Speichern</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="Settings" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="Language" xml:space="preserve"><value>Sprache</value></data>
+  <data name="Theme" xml:space="preserve"><value>Design</value></data>
+  <data name="ThemeDescription" xml:space="preserve"><value>Legen Sie fest, wie ExtSieve auf Ihrem System dargestellt wird.</value></data>
+  <data name="LanguageDescription" xml:space="preserve"><value>Wählen Sie die Sprache der Benutzeroberfläche.</value></data>
+  <data name="BackToMainView" xml:space="preserve"><value>Zurück zur Hauptansicht</value></data>
+  <data name="About" xml:space="preserve"><value>Info</value></data>
+  <data name="AboutName" xml:space="preserve"><value>Name</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>Version</value></data>
+  <data name="AboutBuildInfo" xml:space="preserve"><value>Commit-/Build-Info</value></data>
+  <data name="AboutUpdates" xml:space="preserve"><value>Aktualisierungen</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>Lizenz</value></data>
+  <data name="AboutReleasePage" xml:space="preserve"><value>Release-Seite</value></data>
+  <data name="AboutSupportProject" xml:space="preserve"><value>Projekt unterstützen</value></data>
+  <data name="AboutThirdPartyNotices" xml:space="preserve"><value>Hinweise zu Drittanbietern</value></data>
+  <data name="UnavailableValue" xml:space="preserve"><value>-</value></data>
+  <data name="OpenLicense" xml:space="preserve"><value>Lizenzdokument öffnen</value></data>
+  <data name="OpenReleasePage" xml:space="preserve"><value>Release-Seite öffnen</value></data>
+  <data name="DonateOnKofi" xml:space="preserve"><value>Auf Ko-fi spenden</value></data>
+  <data name="OpenThirdPartyNotices" xml:space="preserve"><value>Hinweise öffnen</value></data>
+  <data name="AboutValueAccessibleNameFormat" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="ExternalResourceOpenWarning" xml:space="preserve"><value>Das angeforderte Dokument oder der Link konnte nicht geöffnet werden.</value></data>
+  <data name="TechnicalDetails" xml:space="preserve"><value>Technische Details</value></data>
+  <data name="OpenDestinationFolder" xml:space="preserve"><value>Zielordner öffnen</value></data>
+  <data name="WarningSummaryFormat" xml:space="preserve"><value>{0:N0} Pfade konnten nicht einbezogen werden. Zugängliche Dateien bleiben verfügbar.</value></data>
+  <data name="StatusNoSource" xml:space="preserve"><value>Wählen Sie einen Ordner aus, um dessen Dateien zu scannen.</value></data>
+  <data name="StatusScanningFormat" xml:space="preserve"><value>Scanvorgang… {0:N0} Dateien gefunden</value></data>
+  <data name="StatusEmptyResult" xml:space="preserve"><value>Keine Dateien gefunden. Wählen Sie einen anderen Ordner aus oder scannen Sie erneut.</value></data>
+  <data name="StatusResults" xml:space="preserve"><value>Scan abgeschlossen. Wählen Sie eine oder mehrere Erweiterungsgruppen aus.</value></data>
+  <data name="StatusResultsWithWarnings" xml:space="preserve"><value>Scan mit Warnungen abgeschlossen. Prüfen Sie die Zusammenfassung und fahren Sie mit den zugänglichen Dateien fort.</value></data>
+  <data name="StatusCreatingFormat" xml:space="preserve"><value>Archiv wird erstellt… {0:N0} von {1:N0} Dateien abgeschlossen</value></data>
+  <data name="StatusCancelled" xml:space="preserve"><value>Vorgang abgebrochen. Es wurde kein unvollständiges Archiv beibehalten.</value></data>
+  <data name="StatusSuccess" xml:space="preserve"><value>Archiv erfolgreich erstellt.</value></data>
+  <data name="StatusError" xml:space="preserve"><value>Der Vorgang konnte nicht abgeschlossen werden. Prüfen Sie die technischen Details und versuchen Sie es erneut.</value></data>
+  <data name="StatusSettings" xml:space="preserve"><value>Bereit. Konfigurieren Sie Ihre Einstellungen.</value></data>
+  <data name="SelectionSummaryFormat" xml:space="preserve"><value>{0:N0} Erweiterungen · {1:N0} Dateien · {2} · {3:N0} Dateinamenskonflikte</value></data>
+  <data name="SuccessSummaryFormat" xml:space="preserve"><value>{0:N0} Dateien · {1} ZIP · {2} Sekunden · {3}</value></data>
+  <data name="SortAscending" xml:space="preserve"><value>aufsteigend</value></data>
+  <data name="SortDescending" xml:space="preserve"><value>absteigend</value></data>
+  <data name="ChooseFolderDialogTitle" xml:space="preserve"><value>Quellordner auswählen</value></data>
+  <data name="ChooseOutputDialogTitle" xml:space="preserve"><value>ZIP-Ziel auswählen</value></data>
+  <data name="ReplaceArchiveTitle" xml:space="preserve"><value>Vorhandenes Archiv ersetzen?</value></data>
+  <data name="ReplaceArchiveMessageFormat" xml:space="preserve"><value>Unter {0} ist bereits ein Archiv vorhanden. Soll es erst ersetzt werden, wenn das neue Archiv vollständig erstellt wurde?</value></data>
+  <data name="Replace" xml:space="preserve"><value>Ersetzen</value></data>
+  <data name="SettingsSaveWarning" xml:space="preserve"><value>Die Einstellung wurde für diese Sitzung geändert, konnte aber nicht gespeichert werden.</value></data>
+</root>

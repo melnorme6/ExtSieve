@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=ExtSieve
+Comment=Group files by extension and create focused ZIP archives
+Exec=extsieve
+TryExec=extsieve
+Icon=extsieve
+Terminal=false
+Categories=Utility;FileTools;Archiving;
+StartupNotify=true

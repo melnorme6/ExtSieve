@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ExtSieve.App.Views.ConfirmationDialog"
+        Width="460" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}">
+  <Grid Margin="24" RowDefinitions="Auto,Auto" RowSpacing="20">
+    <TextBlock x:Name="MessageText" TextWrapping="Wrap" />
+    <StackPanel Grid.Row="1" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8">
+      <Button x:Name="CancelButton" Classes="secondary" MinWidth="96"
+              IsCancel="True" IsDefault="True" Click="OnCancelClick" />
+      <Button x:Name="ConfirmButton" Classes="primary" MinWidth="96"
+              Click="OnConfirmClick" />
+    </StackPanel>
+  </Grid>
+</Window>

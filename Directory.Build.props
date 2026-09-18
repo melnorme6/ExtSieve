@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PathMap>$(MSBuildProjectDirectory)=/_/</PathMap>
+    <Product>ExtSieve</Product>
+    <SupportUrl>https://ko-fi.com/melnorme</SupportUrl>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="PackageLicenseExpression"
+                      Value="$(PackageLicenseExpression)" />
+    <AssemblyMetadata Include="PublicReleaseUrl"
+                      Value="$(PublicReleaseUrl)"
+                      Condition="'$(PublicReleaseUrl)' != ''" />
+    <AssemblyMetadata Include="SupportUrl"
+                      Value="$(SupportUrl)" />
+  </ItemGroup>
+</Project>

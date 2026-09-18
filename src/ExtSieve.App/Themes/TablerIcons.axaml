@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Tabler Icons v3.46.0 outline paths. See THIRD_PARTY_NOTICES.md. -->
+  <StreamGeometry x:Key="TablerRefresh">M20 11 A8.1 8.1 0 0 0 4.5 9 M4 5 L4 9 L8 9 M4 13 A8.1 8.1 0 0 0 19.5 15 M20 19 L20 15 L16 15</StreamGeometry>
+  <StreamGeometry x:Key="TablerFolder">M5 4 L9 4 L12 7 L19 7 A2 2 0 0 1 21 9 L21 17 A2 2 0 0 1 19 19 L5 19 A2 2 0 0 1 3 17 L3 6 A2 2 0 0 1 5 4</StreamGeometry>
+  <StreamGeometry x:Key="TablerFile">M14 3 L14 7 A1 1 0 0 0 15 8 L19 8 M17 21 L7 21 A2 2 0 0 1 5 19 L5 5 A2 2 0 0 1 7 3 L14 3 L19 8 L19 19 A2 2 0 0 1 17 21</StreamGeometry>
+  <StreamGeometry x:Key="TablerFiles">M15 3 L15 7 A1 1 0 0 0 16 8 L20 8 M18 17 L11 17 A2 2 0 0 1 9 15 L9 5 A2 2 0 0 1 11 3 L15 3 L20 8 L20 15 A2 2 0 0 1 18 17 M16 17 L16 19 A2 2 0 0 1 14 21 L7 21 A2 2 0 0 1 5 19 L5 9 A2 2 0 0 1 7 7 L9 7</StreamGeometry>
+  <StreamGeometry x:Key="TablerStack">M12 4 L4 8 L12 12 L20 8 L12 4 M4 12 L12 16 L20 12 M4 16 L12 20 L20 16</StreamGeometry>
+  <StreamGeometry x:Key="TablerArchive">M3 6 A2 2 0 0 1 5 4 L19 4 A2 2 0 0 1 21 6 A2 2 0 0 1 19 8 L5 8 A2 2 0 0 1 3 6 M5 8 L5 18 A2 2 0 0 0 7 20 L17 20 A2 2 0 0 0 19 18 L19 8 M10 12 L14 12</StreamGeometry>
+  <StreamGeometry x:Key="TablerSettings">M10.325 4.317 C10.751 2.561 13.249 2.561 13.675 4.317 A1.724 1.724 0 0 0 16.248 5.383 C17.791 4.443 19.558 6.209 18.618 7.753 A1.724 1.724 0 0 0 19.683 10.325 C21.439 10.751 21.439 13.249 19.683 13.675 A1.724 1.724 0 0 0 18.617 16.248 C19.557 17.791 17.791 19.558 16.247 18.618 A1.724 1.724 0 0 0 13.675 19.683 C13.249 21.439 10.751 21.439 10.325 19.683 A1.724 1.724 0 0 0 7.752 18.617 C6.209 19.557 4.442 17.791 5.382 16.247 A1.724 1.724 0 0 0 4.317 13.675 C2.561 13.249 2.561 10.751 4.317 10.325 A1.724 1.724 0 0 0 5.383 7.752 C4.443 6.209 6.209 4.442 7.753 5.382 C8.753 5.99 10.049 5.452 10.325 4.317 M9 12 A3 3 0 1 0 15 12 A3 3 0 1 0 9 12</StreamGeometry>
+  <StreamGeometry x:Key="TablerChevronUp">M6 15 L12 9 L18 15</StreamGeometry>
+  <StreamGeometry x:Key="TablerChevronDown">M6 9 L12 15 L18 9</StreamGeometry>
+  <StreamGeometry x:Key="TablerArrowLeft">M5 12 L19 12 M5 12 L11 18 M5 12 L11 6</StreamGeometry>
+  <StreamGeometry x:Key="TablerX">M18 6 L6 18 M6 6 L18 18</StreamGeometry>
+</ResourceDictionary>

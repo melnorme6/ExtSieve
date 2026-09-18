@@ -1,0 +1,225 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ExtSieve.App.ViewModels"
+             xmlns:controls="using:ExtSieve.App.Controls"
+             x:Class="ExtSieve.App.Views.SettingsView"
+             x:DataType="vm:MainWindowViewModel">
+  <UserControl.Styles>
+    <Style Selector="Border.settingsCard">
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="MinWidth" Value="260" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Border.aboutRow">
+      <Setter Property="MinHeight" Value="42" />
+      <Setter Property="BorderBrush" Value="{DynamicResource RowSeparatorBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Button.aboutLink">
+      <Setter Property="MinHeight" Value="32" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Button.aboutLink:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource FocusBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.aboutLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.aboutLink:pressed">
+      <Setter Property="Foreground" Value="{DynamicResource FocusBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.aboutLink:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Margin="24,22,24,20" RowDefinitions="Auto,*" RowSpacing="16">
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
+      <TextBlock VerticalAlignment="Center" FontSize="26" FontWeight="SemiBold"
+                 Text="{Binding SettingsLabel}" />
+      <Button x:Name="BackButton" Grid.Column="1"
+              Classes="secondary"
+              Command="{Binding CloseSettingsCommand}"
+              AutomationProperties.Name="{Binding BackToMainViewLabel}">
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <controls:TablerIcon Width="17" Height="17" Data="{StaticResource TablerArrowLeft}" />
+          <TextBlock VerticalAlignment="Center" Text="{Binding BackToMainViewLabel}" />
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12">
+        <Grid x:Name="SettingsCards" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
+              ColumnSpacing="12" RowSpacing="12">
+          <Border x:Name="ThemeCard" Classes="settingsCard">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+              <TextBlock FontSize="17" FontWeight="SemiBold" Text="{Binding ThemeLabel}" />
+              <TextBlock Grid.Row="1" Margin="0,5,0,13" Foreground="{DynamicResource SecondaryTextBrush}"
+                         Text="{Binding ThemeDescription}" TextWrapping="Wrap" />
+              <ComboBox Grid.Row="2" MinHeight="42" HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding ThemeOptions}"
+                        SelectedItem="{Binding SelectedThemeOption, Mode=TwoWay}"
+                        AutomationProperties.Name="{Binding ThemeLabel}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ThemeOption">
+                    <TextBlock Text="{Binding DisplayName}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+          </Border>
+
+          <Border x:Name="LanguageCard" Grid.Column="1" Classes="settingsCard">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+              <TextBlock FontSize="17" FontWeight="SemiBold" Text="{Binding LanguageLabel}" />
+              <TextBlock Grid.Row="1" Margin="0,5,0,13" Foreground="{DynamicResource SecondaryTextBrush}"
+                         Text="{Binding LanguageDescription}" TextWrapping="Wrap" />
+              <ComboBox Grid.Row="2" MinHeight="42" HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding LanguageOptions}"
+                        SelectedItem="{Binding SelectedLanguageOption, Mode=TwoWay}"
+                        AutomationProperties.Name="{Binding LanguageLabel}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LanguageOption">
+                    <TextBlock Text="{Binding DisplayName}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <TextBlock x:Name="AboutHeading" Margin="0,12,0,0" FontSize="26"
+                   FontWeight="SemiBold" Text="{Binding AboutLabel}" />
+
+        <Border x:Name="AboutCard" Classes="settingsCard" Padding="20,0">
+          <StackPanel>
+            <Border Classes="aboutRow">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutNameLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           Text="{Binding ProductName}"
+                           AutomationProperties.Name="{Binding ProductNameAccessibleName}" />
+              </Grid>
+            </Border>
+            <Border Classes="aboutRow">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutVersionLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           Text="{Binding ProductVersion}"
+                           AutomationProperties.Name="{Binding ProductVersionAccessibleName}" />
+              </Grid>
+            </Border>
+            <Border Classes="aboutRow">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutBuildInfoLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           Text="{Binding ProductBuildInfo}"
+                           AutomationProperties.Name="{Binding ProductBuildInfoAccessibleName}" />
+              </Grid>
+            </Border>
+            <Border Classes="aboutRow">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutUpdatesLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           Text="{Binding UpdateStatus}"
+                           AutomationProperties.Name="{Binding UpdateStatusAccessibleName}" />
+              </Grid>
+            </Border>
+            <Border Classes="aboutRow">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutLicenseLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           IsVisible="{Binding ShowsStaticLicense}" Text="{Binding ProductLicense}"
+                           AutomationProperties.Name="{Binding ProductLicenseAccessibleName}" />
+                <Button Grid.Column="1" Margin="8,0,0,0" Classes="aboutLink"
+                        IsVisible="{Binding HasLicenseDocument}"
+                        Command="{Binding OpenLicenseCommand}"
+                        AutomationProperties.Name="{Binding ProductLicenseAccessibleName}">
+                  <TextBlock Text="{Binding ProductLicense}" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+            </Border>
+            <Border Classes="aboutRow">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutReleasePageLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           IsVisible="{Binding ShowsStaticReleasePage}" Text="{Binding ReleasePage}"
+                           AutomationProperties.Name="{Binding ReleasePageAccessibleName}" />
+                <Button Grid.Column="1" Margin="8,4,0,4" Classes="aboutLink"
+                        HorizontalAlignment="Stretch"
+                        IsVisible="{Binding HasReleasePage}"
+                        Command="{Binding OpenReleasePageCommand}"
+                        AutomationProperties.Name="{Binding ReleasePageAccessibleName}">
+                  <TextBlock Text="{Binding ReleasePage}" TextDecorations="Underline"
+                             TextWrapping="Wrap" />
+                </Button>
+              </Grid>
+            </Border>
+            <Border Classes="aboutRow">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutSupportProjectLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           IsVisible="{Binding ShowsStaticSupportPage}"
+                           Text="{Binding SupportProject}"
+                           AutomationProperties.Name="{Binding SupportProjectAccessibleName}" />
+                <Button Grid.Column="1" Margin="8,0,0,0" Classes="aboutLink"
+                        IsVisible="{Binding HasSupportPage}"
+                        Command="{Binding OpenSupportPageCommand}"
+                        AutomationProperties.Name="{Binding SupportProjectAccessibleName}">
+                  <TextBlock Text="{Binding SupportProject}" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+            </Border>
+            <Border MinHeight="42">
+              <Grid ColumnDefinitions="210,*">
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
+                           Text="{Binding AboutThirdPartyNoticesLabel}" />
+                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           IsVisible="{Binding ShowsStaticThirdPartyNotices}"
+                           Text="{Binding ThirdPartyNotices}"
+                           AutomationProperties.Name="{Binding ThirdPartyNoticesAccessibleName}" />
+                <Button Grid.Column="1" Margin="8,0,0,0" Classes="aboutLink"
+                        IsVisible="{Binding HasThirdPartyNotices}"
+                        Command="{Binding OpenThirdPartyNoticesCommand}"
+                        AutomationProperties.Name="{Binding ThirdPartyNoticesAccessibleName}">
+                  <TextBlock Text="{Binding ThirdPartyNotices}" TextDecorations="Underline" />
+                </Button>
+              </Grid>
+            </Border>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

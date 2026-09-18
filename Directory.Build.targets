@@ -1,0 +1,4 @@
+<Project>
+  <!-- Product builds must not emit network telemetry or write user-profile telemetry state. -->
+  <Target Name="AvaloniaStats" />
+</Project>
