@@ -1,0 +1,157 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:ExtSieve.App.Controls">
+  <!-- Scoped geometry leaves the standard Fluent controls and templates intact. -->
+  <Style Selector="ComboBox.compoundMain, TextBox.compoundMain, Button.compoundClear, Button.compactAction">
+    <Setter Property="Height" Value="{DynamicResource ExtSieveControlHeight}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ExtSieveControlHeight}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="UseLayoutRounding" Value="True" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ExtSieveControlCorners}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ExtSieveControlBorder}" />
+    <Setter Property="Background" Value="{DynamicResource SecondaryControlBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBox.compoundMain">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.compoundClear">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.compactAction">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain">
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveControlPadding}" />
+    <Setter Property="PlaceholderForeground" Value="{DynamicResource SecondaryTextBrush}" />
+  </Style>
+  <Style Selector="TextBox.compoundMain">
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveControlPadding}" />
+    <Setter Property="PlaceholderForeground" Value="{DynamicResource SecondaryTextBrush}" />
+  </Style>
+  <Style Selector="Button.compoundClear, Button.compactAction">
+    <Setter Property="Width" Value="{DynamicResource ExtSieveActionWidth}" />
+    <Setter Property="MinWidth" Value="{DynamicResource ExtSieveActionWidth}" />
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveActionPadding}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain.compoundLeft, TextBox.compoundMain.compoundLeft">
+    <Setter Property="CornerRadius" Value="{Binding Source={StaticResource ExtSieveControlCorners}, Converter={StaticResource ExtSieveLeftCorners}}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ExtSieveCompoundLeftBorder}" />
+  </Style>
+  <Style Selector="Button.compoundClear">
+    <Setter Property="CornerRadius" Value="{Binding Source={StaticResource ExtSieveControlCorners}, Converter={StaticResource ExtSieveRightCorners}}" />
+  </Style>
+  <Style Selector="Button.compoundClear:pressed, Button.compactAction:pressed, Button.sourceSegment:pressed, Button.sourceRefresh:pressed">
+    <Setter Property="RenderTransform" Value="{x:Null}" />
+  </Style>
+  <Style Selector="Button.compoundClear controls|TablerIcon, Button.compactAction controls|TablerIcon, Button.sourceSegment controls|TablerIcon, Button.sourceRefresh controls|TablerIcon, RadioButton.segment controls|TablerIcon">
+    <Setter Property="Width" Value="{DynamicResource ExtSieveActionIconSize}" />
+    <Setter Property="Height" Value="{DynamicResource ExtSieveActionIconSize}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain:pointerover, TextBox.compoundMain:pointerover, Button.compoundClear:pointerover, Button.compactAction:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SecondaryControlHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain:pressed, TextBox.compoundMain:pressed, Button.compoundClear:pressed, Button.compactAction:pressed">
+    <Setter Property="Background" Value="{DynamicResource SecondaryControlPressedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain:disabled, TextBox.compoundMain:disabled, Button.compoundClear:disabled, Button.compactAction:disabled">
+    <Setter Property="Background" Value="{DynamicResource DisabledSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+  </Style>
+  <Style Selector="TextBox.compoundMain:disabled">
+    <Setter Property="PlaceholderForeground" Value="{DynamicResource DisabledTextBrush}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain:disabled">
+    <Setter Property="PlaceholderForeground" Value="{DynamicResource DisabledTextBrush}" />
+  </Style>
+  <Style Selector="Grid.compoundGroup:focus-within > ComboBox.compoundMain, Grid.compoundGroup:focus-within > TextBox.compoundMain, Grid.compoundGroup:focus-within > Button.compoundClear, Button.compactAction:focus-visible">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain /template/ Border#Background">
+    <Setter Property="Background" Value="{ReflectionBinding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderBrush" Value="{ReflectionBinding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderThickness" Value="{ReflectionBinding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+  <Style Selector="TextBox.compoundMain /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{ReflectionBinding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderBrush" Value="{ReflectionBinding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderThickness" Value="{ReflectionBinding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+  <Style Selector="Button.compoundClear /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{ReflectionBinding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderBrush" Value="{ReflectionBinding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderThickness" Value="{ReflectionBinding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+  <Style Selector="Button.compactAction /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{ReflectionBinding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderBrush" Value="{ReflectionBinding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderThickness" Value="{ReflectionBinding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain:focus-visible /template/ Border#HighlightBackground">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain /template/ ContentControl#ContentPresenter, ComboBox.compoundMain /template/ PathIcon#DropDownGlyph">
+    <Setter Property="Foreground" Value="{ReflectionBinding Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+  <Style Selector="ComboBox.compoundMain /template/ TextBlock#PlaceholderTextBlock">
+    <Setter Property="Foreground" Value="{ReflectionBinding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+  <Style Selector="Button.compoundClear:disabled controls|TablerIcon, Button.compactAction:disabled controls|TablerIcon, Button.sourceSegment:disabled controls|TablerIcon, Button.sourceRefresh:disabled controls|TablerIcon">
+    <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+  </Style>
+  <Style Selector="Border.segmentGroup">
+    <Setter Property="CornerRadius" Value="{DynamicResource ExtSieveControlCorners}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ExtSieveControlBorder}" />
+  </Style>
+  <Style Selector="Button.sourceSegment">
+    <Setter Property="Height" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveControlPadding}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.sourceRefresh">
+    <Setter Property="Height" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveControlPadding}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBox.pathBox">
+    <Setter Property="Height" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveControlPadding}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="RadioButton.segment">
+    <Setter Property="Height" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ExtSieveInnerControlHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveControlPadding}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.sourceRefresh">
+    <Setter Property="Width" Value="{DynamicResource ExtSieveActionWidth}" />
+    <Setter Property="Padding" Value="{DynamicResource ExtSieveActionPadding}" />
+  </Style>
+  <Style Selector="Button.sourceSegment, Button.sourceRefresh">
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+  </Style>
+  <Style Selector="Button.sourceSegment:disabled, Button.sourceRefresh:disabled">
+    <Setter Property="Background" Value="{DynamicResource DisabledSurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+  </Style>
+  <Style Selector="Button.sourceSegment /template/ ContentPresenter#PART_ContentPresenter, Button.sourceRefresh /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{ReflectionBinding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+    <Setter Property="BorderBrush" Value="{ReflectionBinding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+  </Style>
+</Styles>

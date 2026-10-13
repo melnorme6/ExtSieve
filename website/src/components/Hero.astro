@@ -1,0 +1,32 @@
+---
+import { en } from '../content/en';
+import light from '../assets/screenshots/main-light.png';
+import dark from '../assets/screenshots/main-dark.png';
+import { imageAsset, publicAsset } from '../lib/paths';
+import { heroFraming } from '../lib/screenshot-config';
+import Icon from './Icon.astro';
+const images = [{ image: light, theme: 'light', alt: en.screenshots.lightAlt }, { image: dark, theme: 'dark', alt: en.screenshots.darkAlt }];
+const trustIcons = ['device', 'noAccount', 'noTelemetry', 'license'] as const;
+---
+
+<section class="hero container" aria-labelledby="hero-title">
+  <h1 id="hero-title">{en.hero.title}</h1>
+  <p class="hero-description">{en.hero.description}</p>
+  <div class="actions">
+    <a class="button button-primary" href={en.hero.primaryAction.href} tabindex="0">{en.hero.primaryAction.label}</a>
+    <a class="button button-secondary" href={en.hero.secondaryAction.href} tabindex="0">{en.hero.secondaryAction.label}</a>
+  </div>
+  <ul class="hero-trust" role="list">
+    {en.hero.trust.map((label, index) => <li><Icon name={trustIcons[index] ?? 'device'} /><span>{label}</span></li>)}
+  </ul>
+  <div class="hero-window">
+    {images.map(({ image, theme, alt }) => <a class={`hero-screen image-open theme-${theme}`} href={imageAsset(image.src)} data-image-title={theme === 'light' ? en.screenshots.light : en.screenshots.dark} data-image-alt={alt} aria-label={`${en.gallery.open}: ${alt}`} tabindex="0">
+      <picture>
+        <source media="(max-width: 42rem)" type="image/webp" srcset={publicAsset(`screenshots/details/hero-${theme}.webp`)} width={heroFraming.width} height={heroFraming.height} />
+        <source media="(max-width: 42rem)" srcset={publicAsset(`screenshots/details/hero-${theme}.png`)} width={heroFraming.width} height={heroFraming.height} />
+        <source type="image/webp" srcset={publicAsset(`screenshots/details/${theme}-full.webp`)} />
+        <img src={imageAsset(image.src)} width={image.width} height={image.height} alt={alt} fetchpriority="high" decoding="async" />
+      </picture><span class="image-expand"><Icon name="expand" /></span>
+    </a>)}
+  </div>
+</section>

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+.vite/
+test-results/
+playwright-report/
+/public/screenshots/details/

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Xml.Linq;
 
 namespace ExtSieve.App.Tests.Packaging;
@@ -39,7 +41,8 @@ public sealed class PackagingContractTests
     public void ProductBuildDisablesAvaloniaBuildTelemetry()
     {
         var targets = XDocument.Load(ProductPath("Directory.Build.targets"));
-        var target = Assert.Single(targets.Descendants("Target"));
+        var target = Assert.Single(targets.Descendants("Target"),
+            element => (string?)element.Attribute("Name") == "AvaloniaStats");
 
         Assert.Equal("AvaloniaStats", (string?)target.Attribute("Name"));
         Assert.Empty(target.Elements());
@@ -100,10 +103,20 @@ public sealed class PackagingContractTests
         Assert.DoesNotContain("Settings and About", readme, StringComparison.Ordinal);
         Assert.DoesNotContain("Browse beside Source", readme, StringComparison.Ordinal);
         Assert.Contains("## Screenshot", readme, StringComparison.Ordinal);
-        Assert.Contains(
-            "![ExtSieve main view shown in Light and Dark themes](docs/screenshots/main-light-dark.png)",
-            readme,
-            StringComparison.Ordinal);
+        foreach (var (theme, hash) in new[]
+        {
+            ("light", "d615eefb4f7fbad0679e8c30601bf036141fb3a92468f87f5650b9729668af44"),
+            ("dark", "9d8efc3304b8523f08e85fd782cd6690cda05a4a2b84247c1ef943accc59946e"),
+        })
+        {
+            Assert.Contains(
+                $"(website/src/assets/screenshots/main-{theme}.png)",
+                readme,
+                StringComparison.Ordinal);
+            using var image = File.OpenRead(ProductPath(
+                "website", "src", "assets", "screenshots", $"main-{theme}.png"));
+            Assert.Equal(hash, Convert.ToHexString(SHA256.HashData(image)).ToLowerInvariant());
+        }
         Assert.Contains("## Supported languages", readme, StringComparison.Ordinal);
         var languageHeading = readme.IndexOf("## Supported languages", StringComparison.Ordinal);
         var usageHeading = readme.IndexOf("## Basic usage", StringComparison.Ordinal);
@@ -112,10 +125,6 @@ public sealed class PackagingContractTests
             .Where(line => line.StartsWith("- ", StringComparison.Ordinal))
             .ToArray();
         Assert.Equal(SupportedReadmeLanguages, languageItems);
-        Assert.Contains(
-            "Some non-English translations were prepared with AI assistance and may be refined over time.",
-            readme.ReplaceLineEndings(" "),
-            StringComparison.Ordinal);
         Assert.DoesNotContain("Polish", readme, StringComparison.Ordinal);
         Assert.DoesNotContain("Simplified Chinese", readme, StringComparison.Ordinal);
         Assert.DoesNotContain("Japanese", readme, StringComparison.Ordinal);
@@ -130,7 +139,7 @@ public sealed class PackagingContractTests
         [
             "'restore', $solutionPath, '--locked-mode'",
             "'build', $solutionPath",
-            "'test', $solutionPath",
+            "'test', '--solution', $solutionPath",
             "'publish', $projectPath",
             "'--configuration', 'Release'",
             "'--runtime', $runtimeIdentifier",
@@ -142,6 +151,7 @@ public sealed class PackagingContractTests
             "'-p:DebugType=None'",
             "'LICENSE'",
             "THIRD_PARTY_NOTICES.md",
+            "docs\\LOCAL_DATA.md",
             "DOTNET_THIRD_PARTY_NOTICES.txt",
             "SKIASHARP_THIRD_PARTY_NOTICES.txt",
             "Get-ChildItem -LiteralPath $packageDirectory -Recurse -File -Filter '*.pdb'",
@@ -168,7 +178,7 @@ public sealed class PackagingContractTests
         [
             "dotnet restore \"$solution_path\" --locked-mode",
             "dotnet build \"$solution_path\" --configuration Release --no-restore",
-            "dotnet test \"$solution_path\" --configuration Release --no-build --no-restore",
+            "dotnet test --solution \"$solution_path\" --configuration Release --no-build --no-restore",
             "dotnet publish \"$project_path\"",
             "runtime_identifier=linux-x64",
             "--self-contained true",
@@ -179,6 +189,7 @@ public sealed class PackagingContractTests
             "-p:DebugType=None",
             "for document in LICENSE README.md",
             "LINUX_REQUIREMENTS.md",
+            "docs/LOCAL_DATA.md",
             "extsieve-app-icon-256.png",
             "DOTNET_THIRD_PARTY_NOTICES.txt",
             "SKIASHARP_THIRD_PARTY_NOTICES.txt",
@@ -227,7 +238,7 @@ public sealed class PackagingContractTests
         Assert.Contains("VersionInfoProductVersion={#AppVersion}", definition,
             StringComparison.Ordinal);
         Assert.Contains("Installed Apps", lifecycleTest, StringComparison.Ordinal);
-        Assert.Contains("1.0.1", lifecycleTest, StringComparison.Ordinal);
+        Assert.Contains("$upgradeVersion", lifecycleTest, StringComparison.Ordinal);
         Assert.Contains("settings", lifecycleTest, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("archive", lifecycleTest, StringComparison.OrdinalIgnoreCase);
     }
@@ -320,6 +331,92 @@ public sealed class PackagingContractTests
         Assert.Contains("TryExec=extsieve", desktopEntry, StringComparison.Ordinal);
         Assert.Contains("Icon=extsieve", desktopEntry, StringComparison.Ordinal);
         Assert.Contains("Terminal=false", desktopEntry, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("artifact", "Artifact already exists")]
+    [InlineData("work", "already exists")]
+    [InlineData("overlap", "non-overlapping")]
+    [InlineData("public", "Public release builds require PublicSourceRevision")]
+    public async Task PublisherPreflightPreservesExistingArtifactsAndWork(string scenario, string expectedError)
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"ExtSieve.Publisher.Tests.{Guid.NewGuid():N}");
+        var artifacts = Path.Combine(root, "candidate");
+        var work = scenario == "overlap" ? Path.Combine(artifacts, "work") : Path.Combine(root, "work");
+        Directory.CreateDirectory(artifacts);
+        var version = XDocument.Load(ProductPath("Directory.Build.props"))
+            .Descendants("Version").Single().Value;
+        var windows = OperatingSystem.IsWindows();
+        var sentinel = Path.Combine(artifacts,
+            $"ExtSieve-{version}-{(windows ? "win-x64.zip" : "linux-x64.tar.gz")}");
+        byte[] original = [0, 1, 127, 255, 13, 10];
+        if (scenario is "artifact" or "public") File.WriteAllBytes(sentinel, original);
+        if (scenario == "work")
+        {
+            Directory.CreateDirectory(work);
+            File.WriteAllBytes(Path.Combine(work, "owner.bin"), original);
+        }
+        try
+        {
+            var start = new ProcessStartInfo(windows ? "powershell.exe" : "bash")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            if (windows)
+            {
+                foreach (var argument in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+                    ProductPath("scripts", "publish-windows.ps1"), "-ArtifactDirectory", artifacts,
+                    "-WorkDirectory", work }) start.ArgumentList.Add(argument);
+                if (scenario == "public") start.ArgumentList.Add("-PublicReleaseBuild");
+            }
+            else
+            {
+                start.ArgumentList.Add(ProductPath("scripts", "publish-linux.sh"));
+                start.Environment["EXTSIEVE_ARTIFACT_DIRECTORY"] = artifacts;
+                start.Environment["EXTSIEVE_WORK_DIRECTORY"] = work;
+                start.Environment["PUBLIC_RELEASE_BUILD"] = scenario == "public" ? "true" : "false";
+                start.Environment["PUBLIC_SOURCE_REVISION"] = "";
+            }
+            using var process = Process.Start(start)!;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            try
+            {
+                var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+                var error = process.StandardError.ReadToEndAsync(timeout.Token);
+                await process.WaitForExitAsync(timeout.Token);
+                Assert.NotEqual(0, process.ExitCode);
+                Assert.Contains(expectedError, await output + await error, StringComparison.Ordinal);
+                if (scenario is "artifact" or "public") Assert.Equal(original, File.ReadAllBytes(sentinel));
+                if (scenario == "work") Assert.Equal(original, File.ReadAllBytes(Path.Combine(work, "owner.bin")));
+                else Assert.False(Directory.Exists(work));
+                Assert.Equal(scenario is "artifact" or "public" ? 1 : 0, Directory.GetFiles(artifacts).Length);
+            }
+            finally
+            {
+                if (!process.HasExited) process.Kill(entireProcessTree: true);
+            }
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void PublishersSeparateVersionedCandidatesFromScratchAndInstallerResolvesTheCandidate()
+    {
+        var windows = File.ReadAllText(ProductPath("scripts", "publish-windows.ps1"));
+        var linux = File.ReadAllText(ProductPath("scripts", "publish-linux.sh"));
+        var lifecycle = File.ReadAllText(ProductPath("scripts", "test-windows-installer.ps1"));
+        Assert.Contains("artifacts\\releases\\$version\\candidate", windows, StringComparison.Ordinal);
+        Assert.Contains("artifacts/releases/$version/candidate", linux, StringComparison.Ordinal);
+        Assert.Contains("EXTSIEVE_WORK_DIRECTORY", linux, StringComparison.Ordinal);
+        Assert.Contains("$work_directory/native-root", linux, StringComparison.Ordinal);
+        Assert.DoesNotContain("rm -rf -- \"$package_directory\"", linux, StringComparison.Ordinal);
+        Assert.Contains("artifacts\\releases\\$version\\candidate\\ExtSieve-Setup", lifecycle, StringComparison.Ordinal);
     }
 
     private static string ProductPath(params string[] parts) => Path.GetFullPath(

@@ -22,16 +22,18 @@ public sealed class AssemblyProductAboutProvider : IProductAboutProvider
                 group => group.Key,
                 group => group.Last().Value,
                 StringComparer.Ordinal);
-        var informationalVersion = assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion;
-
         ProductName = assembly.GetCustomAttribute<AssemblyProductAttribute>()?.Product
             ?? assembly.GetName().Name
             ?? string.Empty;
-        BuildInfo = GetSafeBuildInfo(informationalVersion);
+        PublicSourceRevision = GetValidatedPublicSourceRevision(GetMetadata(metadata, "PublicSourceRevision"));
+        BuildInfo = PublicSourceRevision?[..ShortCommitLength];
         LicenseName = GetLicenseName(GetMetadata(metadata, "PackageLicenseExpression"));
         ReleasePageUri = GetPublicReleasePageUri(GetMetadata(metadata, "PublicReleaseUrl"));
+        if (PublicSourceRevision is not null && ReleasePageUri is not null)
+        {
+            var repositoryPath = ReleasePageUri.AbsolutePath.TrimEnd('/')[..^"/releases".Length];
+            CommitPageUri = new Uri($"{ReleasePageUri.GetLeftPart(UriPartial.Authority)}{repositoryPath}/commit/{PublicSourceRevision}");
+        }
         SupportPageUri = GetPublicSupportPageUri(GetMetadata(metadata, "SupportUrl"));
         LicenseDocumentPath = GetExistingDocumentPath(applicationDirectory, "LICENSE");
         ThirdPartyNoticesPath = GetExistingDocumentPath(
@@ -43,6 +45,10 @@ public sealed class AssemblyProductAboutProvider : IProductAboutProvider
 
     public string? BuildInfo { get; }
 
+    public string? PublicSourceRevision { get; }
+
+    public Uri? CommitPageUri { get; }
+
     public string? LicenseName { get; }
 
     public string? LicenseDocumentPath { get; }
@@ -53,31 +59,10 @@ public sealed class AssemblyProductAboutProvider : IProductAboutProvider
 
     public string? ThirdPartyNoticesPath { get; }
 
-    public static string? GetSafeBuildInfo(string? informationalVersion)
+    public static string? GetValidatedPublicSourceRevision(string? revision)
     {
-        if (string.IsNullOrWhiteSpace(informationalVersion))
-        {
-            return null;
-        }
-
-        var separator = informationalVersion.IndexOf('+', StringComparison.Ordinal);
-        if (separator < 0 || separator == informationalVersion.Length - 1)
-        {
-            return null;
-        }
-
-        foreach (var token in informationalVersion[(separator + 1)..]
-                     .Split(['.', '-'], StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (token.Length >= ShortCommitLength
-                && token.Length <= 40
-                && token.All(Uri.IsHexDigit))
-            {
-                return token[..Math.Min(ShortCommitLength, token.Length)].ToLowerInvariant();
-            }
-        }
-
-        return null;
+        return revision is { Length: 40 } && revision.All(Uri.IsHexDigit)
+            ? revision.ToLowerInvariant() : null;
     }
 
     public static Uri? GetPublicReleasePageUri(string? value)
@@ -85,6 +70,7 @@ public sealed class AssemblyProductAboutProvider : IProductAboutProvider
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
             || !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(uri.Host, "github.com", StringComparison.OrdinalIgnoreCase)
+            || !uri.IsDefaultPort
             || !string.IsNullOrEmpty(uri.UserInfo)
             || !string.IsNullOrEmpty(uri.Query)
             || !string.IsNullOrEmpty(uri.Fragment))

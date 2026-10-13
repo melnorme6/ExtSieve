@@ -8,6 +8,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://ExtSieve.App/Themes/SemanticColors.axaml" />
                 <ResourceInclude Source="avares://ExtSieve.App/Themes/TablerIcons.axaml" />
+                <ResourceInclude Source="avares://ExtSieve.App/Themes/ControlMetrics.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
@@ -54,6 +55,10 @@
             <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
             <Setter Property="Background" Value="{DynamicResource DisabledSurfaceBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+        </Style>
+        <Style Selector="Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.secondary:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.secondary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{ReflectionBinding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+            <Setter Property="BorderBrush" Value="{ReflectionBinding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
         </Style>
         <Style Selector="Button.primary">
             <Setter Property="MinHeight" Value="40" />

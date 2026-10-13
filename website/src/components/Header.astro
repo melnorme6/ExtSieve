@@ -1,0 +1,23 @@
+---
+import { en } from '../content/en';
+import { publicAsset } from '../lib/paths';
+import Icon from './Icon.astro';
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href={import.meta.env.BASE_URL} aria-label={en.name} tabindex="0">
+      <img src={publicAsset('icons/extsieve.png')} width="32" height="32" alt="" />
+      <span>{en.name}</span>
+    </a>
+    <div class="header-controls">
+    <button id="navigation-toggle" class="control navigation-toggle" type="button" aria-expanded="false" aria-controls="main-navigation" hidden><Icon name="menu" /><span>{en.menu}</span></button>
+    <nav id="main-navigation" aria-label={en.navigationLabel}>
+      <ul class="navigation">
+        {en.navigation.map(({ href, label }) => <li><a href={href} tabindex="0">{label}</a></li>)}
+      </ul>
+    </nav>
+    <button id="theme-toggle" class="control theme-toggle" type="button" aria-label={en.theme.toDark} title={en.theme.toDark} data-label-dark={en.theme.toDark} data-label-light={en.theme.toLight} hidden><span class="theme-light"><Icon name="moon" /></span><span class="theme-dark"><Icon name="sun" /></span></button>
+    </div>
+  </div>
+</header>

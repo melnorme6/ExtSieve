@@ -1,0 +1,15 @@
+---
+import { en } from '../content/en';
+import { publicAsset } from '../lib/paths';
+---
+
+<footer class="site-footer container">
+  <div>
+    <div class="brand"><img src={publicAsset('icons/extsieve.png')} width="28" height="28" alt="" /><span>{en.name}</span></div>
+    <p>{en.footer.description}</p>
+    <p>{en.footer.license}</p>
+  </div>
+  <ul class="footer-links">
+    {en.footer.links.map(({ href, label }) => <li><a href={href} tabindex="0">{label}</a></li>)}
+  </ul>
+</footer>

@@ -23,9 +23,11 @@ remain covered by the development dependency audit.
 
 ## Tabler Icons
 
-ExtSieve includes selected outline icon path data from Tabler Icons v3.46.0.
+ExtSieve includes selected outline icon path data from Tabler Icons v3.46.0,
+with the duplicate icon from v3.48.0. Both use the MIT license below.
 
 Source: <https://github.com/tabler/tabler-icons/tree/v3.46.0>
+Duplicate icon source: <https://github.com/tabler/tabler-icons/blob/v3.48.0/icons/outline/duplicate.svg>
 
 Copyright (c) 2020-2026 Paweł Kuna
 

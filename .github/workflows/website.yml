@@ -1,0 +1,191 @@
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/website.yml'
+      - '.github/dependabot.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/website.yml'
+      - '.github/dependabot.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Current complete stable release tag to rebuild (vMAJOR.MINOR.PATCH)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Cancel superseded PR checks. Production keeps its lock through Pages completion;
+# queued obsolete runs fail the current-main/release/run guards before deployment.
+concurrency:
+  group: website-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+    working-directory: website
+
+env:
+  ASTRO_TELEMETRY_DISABLED: '1'
+  PLAYWRIGHT_CHANNEL: chromium
+
+jobs:
+  verify:
+    name: Website checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      source_sha: ${{ steps.source.outputs.sha }}
+      publish: ${{ steps.eligibility.outputs.publish }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.sha || 'refs/heads/main' }}
+          persist-credentials: false
+      - id: source
+        name: Record exact source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.18.0'
+          package-manager-cache: false
+      - name: Verify toolchain and locked install
+        run: |
+          test "$(npm --version)" = '11.16.0'
+          npm ci
+      - name: Check, build private preview and run Node contracts
+        run: npm run verify
+      - name: Exercise build modes and negative release fixtures
+        run: npm run test:modes
+      - name: Install lockfile-matched browser once
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Blocking browser, accessibility and CSP checks
+        run: npm run test:browser
+      - id: eligibility
+        name: Determine publication eligibility
+        env:
+          WEBSITE_DEPLOY_POLICY: ${{ vars.WEBSITE_DEPLOY_POLICY }}
+        run: node scripts/ci-publication.mjs eligibility
+
+  build:
+    name: Verified Pages artifact
+    needs: verify
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.repository == 'melnorme6/ExtSieve' &&
+       github.event_name != 'pull_request' &&
+       needs.verify.outputs.publish == 'true')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      plan: ${{ steps.plan.outputs.plan }}
+    env:
+      WEBSITE_DEPLOY_POLICY: ${{ vars.WEBSITE_DEPLOY_POLICY }}
+      SITE_SOURCE_SHA: ${{ needs.verify.outputs.source_sha }}
+      SITE_WORKFLOW_SHA: ${{ github.workflow_sha }}
+      SITE_WORKFLOW_REF: ${{ github.workflow_ref }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.18.0'
+          package-manager-cache: false
+      - id: plan
+        name: Validate trusted main, workflow provenance and current complete release
+        if: github.event_name != 'pull_request'
+        run: node scripts/ci-publication.mjs prepare
+      - name: Verify toolchain and locked install
+        run: |
+          test "$(npm --version)" = '11.16.0'
+          npm ci
+      - name: Check and build indexable candidate
+        if: github.event_name != 'pull_request'
+        env:
+          SITE_EXPECTED_RELEASE_ID: ${{ steps.plan.outputs.release_id }}
+          SITE_EXPECTED_RELEASE_TAG: ${{ steps.plan.outputs.release_tag }}
+          SITE_MINIMUM_VERSION: ${{ steps.plan.outputs.minimum_version }}
+        run: npm run build:candidate
+      - name: Check and build unprivileged PR candidate
+        if: github.event_name == 'pull_request'
+        run: npm run build:candidate
+      - name: Node output, SEO, JSON-LD, canonical, subpath and asset checks
+        env:
+          SITE_BUILD_MODE: release-candidate
+        run: npm test
+      - name: Install lockfile-matched browser once
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Blocking candidate browser, privacy, accessibility and CSP checks
+        run: npm run test:browser
+      - name: Revalidate release, official download links and exact artifact inventory
+        if: github.event_name != 'pull_request'
+        env:
+          SITE_PLAN: ${{ steps.plan.outputs.plan }}
+        run: node scripts/ci-publication.mjs record
+      - name: Upload only verified static output
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages
+          path: website/dist
+          retention-days: 1
+
+  deploy:
+    name: Publish approved artifact
+    needs: [verify, build]
+    if: >-
+      github.repository == 'melnorme6/ExtSieve' &&
+      github.event_name != 'pull_request' &&
+      needs.verify.outputs.publish == 'true' &&
+      (vars.WEBSITE_DEPLOY_POLICY == 'initial' || vars.WEBSITE_DEPLOY_POLICY == 'enabled')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: website-pages-deploy
+      cancel-in-progress: false
+    env:
+      WEBSITE_DEPLOY_POLICY: ${{ vars.WEBSITE_DEPLOY_POLICY }}
+      SITE_SOURCE_SHA: ${{ needs.verify.outputs.source_sha }}
+      SITE_WORKFLOW_SHA: ${{ github.workflow_sha }}
+      SITE_WORKFLOW_REF: ${{ github.workflow_ref }}
+      SITE_PLAN: ${{ needs.build.outputs.plan }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.18.0'
+          package-manager-cache: false
+      - name: Recheck main, workflow, latest release, inventory and deployed floor under lock
+        run: node scripts/ci-publication.mjs recheck
+      - name: Deploy exact same-run artifact without rebuilding
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: github-pages

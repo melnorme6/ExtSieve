@@ -1,0 +1,29 @@
+{
+  "name": "extsieve-website",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": ">=24.18.0 <25",
+    "npm": ">=11.16.0 <12"
+  },
+  "scripts": {
+    "dev": "node scripts/astro.mjs dev",
+    "check": "node scripts/astro.mjs check --minimumFailingSeverity warning",
+    "build": "npm run check && node scripts/astro.mjs build",
+    "build:candidate": "npm run check && node scripts/astro.mjs build --site-mode release-candidate",
+    "preview": "node scripts/astro.mjs preview",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "playwright test",
+    "test:modes": "node scripts/test-build-modes.mjs",
+    "verify": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
+    "astro": "7.3.8",
+    "typescript": "6.0.3"
+  }
+}

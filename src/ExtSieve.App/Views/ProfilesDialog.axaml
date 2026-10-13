@@ -1,0 +1,133 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtSieve.App.ViewModels" xmlns:models="using:ExtSieve.Core.Models"
+        xmlns:controls="using:ExtSieve.App.Controls"
+        x:Class="ExtSieve.App.Views.ProfilesDialog" x:DataType="vm:ProfileManagerViewModel"
+        Title="{Binding Title}" Width="680" Height="490" MinWidth="560" MinHeight="400"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}">
+  <Window.Resources>
+    <CornerRadius x:Key="ProfilePillCornerRadius">6</CornerRadius>
+  </Window.Resources>
+  <Window.Styles>
+    <Style Selector="Button.profileIcon">
+      <Setter Property="Width" Value="32" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="MinHeight" Value="32" />
+      <Setter Property="Padding" Value="6" />
+    </Style>
+    <Style Selector="Border.profilePaneFooter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+    <Style Selector="Button.profileRemove">
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.profileRemove:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlHoverBrush}" />
+    </Style>
+    <Style Selector="Button.profileRemove:pressed:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SecondaryControlPressedBrush}" />
+    </Style>
+    <Style Selector="Button.profileRemove:focus-visible">
+      <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+    </Style>
+    <Style Selector="TextBlock.profileMessage">
+      <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+    </Style>
+    <Style Selector="TextBlock.profileMessage.warning">
+      <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+    </Style>
+  </Window.Styles>
+  <Grid Margin="20" RowDefinitions="*,Auto,Auto" RowSpacing="12">
+    <Grid ColumnDefinitions="1.1*,*" ColumnSpacing="14">
+      <controls:RoundedContentBorder Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource ControlBorderBrush}"
+              BorderThickness="1" CornerRadius="7">
+        <Grid RowDefinitions="*,Auto">
+          <ListBox x:Name="ProfileList" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"
+                   IsEnabled="{Binding CanWrite}" AutomationProperties.Name="{Binding Title}"
+                   BorderThickness="0" Background="Transparent">
+            <ListBox.ItemTemplate><DataTemplate x:DataType="models:ExtensionProfile">
+              <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
+            </DataTemplate></ListBox.ItemTemplate>
+          </ListBox>
+          <Border x:Name="ProfileListFooter" Grid.Row="1" Classes="profilePaneFooter">
+            <Grid x:Name="ProfileFooter" Margin="8" ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+              <Button x:Name="NewProfileButton" Classes="secondary profileIcon" Command="{Binding CreateCommand}"
+                      ToolTip.Tip="{Binding CreateLabel}" AutomationProperties.Name="{Binding CreateLabel}">
+                <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerPlus}" />
+              </Button>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                <Button x:Name="ImportProfilesButton" Classes="secondary profileIcon" Command="{Binding ImportCommand}"
+                        ToolTip.Tip="{Binding ImportLabel}" AutomationProperties.Name="{Binding ImportLabel}">
+                  <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerUpload}" />
+                </Button>
+                <Button x:Name="ExportProfileButton" Classes="secondary profileIcon" Command="{Binding ExportCommand}"
+                        ToolTip.Tip="{Binding ExportLabel}" AutomationProperties.Name="{Binding ExportLabel}">
+                  <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerDownload}" />
+                </Button>
+              </StackPanel>
+              <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4">
+                <Button x:Name="RenameProfileButton" Classes="secondary profileIcon" Command="{Binding RenameCommand}"
+                        ToolTip.Tip="{Binding RenameLabel}" AutomationProperties.Name="{Binding RenameLabel}">
+                  <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerEdit}" />
+                </Button>
+                <Button x:Name="DuplicateProfileButton" Classes="secondary profileIcon" Command="{Binding DuplicateCommand}"
+                        ToolTip.Tip="{Binding DuplicateLabel}" AutomationProperties.Name="{Binding DuplicateLabel}">
+                  <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerDuplicate}" />
+                </Button>
+                <Button x:Name="DeleteProfileButton" Classes="secondary profileIcon" Command="{Binding DeleteCommand}"
+                        ToolTip.Tip="{Binding DeleteLabel}" AutomationProperties.Name="{Binding DeleteLabel}">
+                  <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerTrash}" />
+                </Button>
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Grid>
+      </controls:RoundedContentBorder>
+      <controls:RoundedContentBorder Grid.Column="1" Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="7">
+        <Grid RowDefinitions="*,Auto">
+          <ScrollViewer x:Name="ExtensionsScroll" Margin="12" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{Binding EmptyLabel}" IsVisible="{Binding !HasSelectedProfile}" TextWrapping="Wrap"
+                         Foreground="{DynamicResource SecondaryTextBrush}" />
+              <ItemsControl x:Name="ExtensionItems" ItemsSource="{Binding ExtensionItems}" IsEnabled="{Binding CanEditProfile}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:ProfileExtensionItem">
+                  <Grid Margin="0,0,6,6" MaxWidth="{Binding $parent[ItemsControl].Bounds.Width}">
+                    <controls:RoundedContentBorder IsVisible="{Binding !IsAdd}" CornerRadius="{StaticResource ProfilePillCornerRadius}"
+                            Background="{DynamicResource SecondaryControlBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Display}" Margin="7,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Display}" />
+                        <Button Grid.Column="1" Classes="secondary profileIcon profileRemove" Command="{Binding Command}"
+                                ToolTip.Tip="{Binding Help}" AutomationProperties.Name="{Binding Help}">
+                          <controls:TablerIcon Width="16" Height="16" Data="{StaticResource TablerX}" />
+                        </Button>
+                      </Grid>
+                    </controls:RoundedContentBorder>
+                    <Button IsVisible="{Binding IsAdd}" Classes="secondary profileIcon" Command="{Binding Command}"
+                            ToolTip.Tip="{Binding Help}" AutomationProperties.Name="{Binding Help}">
+                      <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerPlus}" />
+                    </Button>
+                  </Grid>
+                </DataTemplate></ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+          <Border x:Name="ExtensionFooter" Grid.Row="1" Classes="profilePaneFooter"
+                  MinHeight="{Binding #ProfileListFooter.Bounds.Height}">
+            <TextBlock Margin="12,8" Text="{Binding ExtensionSummary}" VerticalAlignment="Center" TextWrapping="Wrap"
+                       Foreground="{DynamicResource SecondaryTextBrush}" AutomationProperties.LiveSetting="Polite" />
+          </Border>
+        </Grid>
+      </controls:RoundedContentBorder>
+    </Grid>
+    <TextBlock Grid.Row="1" Classes="profileMessage" Classes.warning="{Binding HasWarning}"
+               Text="{Binding Message}" IsVisible="{Binding HasMessage}" TextWrapping="Wrap"
+               AutomationProperties.LiveSetting="Polite" />
+    <Button x:Name="CloseProfilesButton" Grid.Row="2" HorizontalAlignment="Right" Classes="secondary"
+            Content="{Binding CloseLabel}" IsCancel="True" Click="OnClose" />
+  </Grid>
+</Window>

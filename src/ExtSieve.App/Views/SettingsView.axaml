@@ -132,21 +132,48 @@
             <Border Classes="aboutRow">
               <Grid ColumnDefinitions="210,*">
                 <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
-                           Text="{Binding AboutBuildInfoLabel}" />
+                           Text="{Binding AboutBuildInfoLabel}" TextWrapping="Wrap" />
                 <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
                            Foreground="{DynamicResource SecondaryTextBrush}"
+                           IsVisible="{Binding !HasPublicCommit}"
                            Text="{Binding ProductBuildInfo}"
                            AutomationProperties.Name="{Binding ProductBuildInfoAccessibleName}" />
+                <Button x:Name="PublicCommitButton" Grid.Column="1" Margin="8,0,0,0"
+                        Classes="aboutLink" IsVisible="{Binding HasPublicCommit}"
+                        Command="{Binding OpenPublicCommitCommand}"
+                        ToolTip.Tip="{Binding OpenPublicCommitToolTip}"
+                        AutomationProperties.Name="{Binding ProductBuildInfoAccessibleName}">
+                  <TextBlock Text="{Binding ProductBuildInfo}" TextDecorations="Underline" />
+                </Button>
               </Grid>
             </Border>
             <Border Classes="aboutRow">
               <Grid ColumnDefinitions="210,*">
                 <TextBlock FontWeight="SemiBold" VerticalAlignment="Center"
                            Text="{Binding AboutUpdatesLabel}" />
-                <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
-                           Foreground="{DynamicResource SecondaryTextBrush}"
-                           Text="{Binding UpdateStatus}"
-                           AutomationProperties.Name="{Binding UpdateStatusAccessibleName}" />
+                <StackPanel Grid.Column="1" Margin="8,4,0,4" VerticalAlignment="Center">
+                  <TextBlock x:Name="UpdateStatusText" IsVisible="{Binding HasUpdateStatus}"
+                             Foreground="{DynamicResource SecondaryTextBrush}"
+                             Text="{Binding UpdateStatus}" TextWrapping="Wrap"
+                             AutomationProperties.LiveSetting="Polite"
+                             AutomationProperties.Name="{Binding UpdateStatusAccessibleName}" />
+                  <WrapPanel Orientation="Horizontal">
+                    <Button x:Name="CheckForUpdatesButton" Classes="aboutLink" Margin="0,0,16,0"
+                            IsVisible="{Binding ShowsCheckForUpdates}"
+                            Command="{Binding CheckForUpdatesCommand}"
+                            AutomationProperties.Name="{Binding CheckForUpdatesLabel}">
+                      <TextBlock Text="{Binding CheckForUpdatesLabel}" TextDecorations="Underline"
+                                 TextWrapping="Wrap" />
+                    </Button>
+                    <Button x:Name="OpenDetectedReleaseButton" Classes="aboutLink"
+                            IsVisible="{Binding HasNewRelease}"
+                            Command="{Binding OpenDetectedReleaseCommand}"
+                            AutomationProperties.Name="{Binding OpenDetectedReleaseLabel}">
+                      <TextBlock Text="{Binding OpenDetectedReleaseLabel}" TextDecorations="Underline"
+                                 TextWrapping="Wrap" />
+                    </Button>
+                  </WrapPanel>
+                </StackPanel>
               </Grid>
             </Border>
             <Border Classes="aboutRow">

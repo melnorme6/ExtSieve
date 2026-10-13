@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Reflection.Emit;
 using ExtSieve.App;
 using ExtSieve.App.Services;
 
@@ -6,6 +7,18 @@ namespace ExtSieve.App.Tests.Services;
 
 public sealed class ProductAboutTests
 {
+    [Theory]
+    [InlineData("abcdef1234567890abcdef1234567890abcdef12", "abcdef1")]
+    [InlineData(null, null)]
+    [InlineData("abcdef1", null)]
+    public void EmbeddedPublicMetadataNeverFallsBackToInformationalVersionOrPrivateSourceRevision(string? revision, string? expected)
+    {
+        var assembly = CreateSyntheticAssembly(revision);
+        var provider = new AssemblyProductAboutProvider(assembly, Path.GetTempPath());
+        Assert.Equal(expected, provider.BuildInfo);
+        Assert.Equal("1.1.0", new AssemblyProductVersionProvider(assembly).PublicVersion);
+    }
+
     [Fact]
     public void AppAssemblyProvidesApprovedProductMetadata()
     {
@@ -13,24 +26,57 @@ public sealed class ProductAboutTests
 
         Assert.Equal("ExtSieve", provider.ProductName);
         Assert.Equal("MIT License", provider.LicenseName);
-        Assert.Null(provider.BuildInfo);
-        Assert.Null(provider.ReleasePageUri);
+        var revision = typeof(MainWindow).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .SingleOrDefault(attribute => attribute.Key == "PublicSourceRevision")?.Value;
+        Assert.Equal(revision?.ToLowerInvariant(), provider.PublicSourceRevision);
+        Assert.Equal(revision?[..7].ToLowerInvariant(), provider.BuildInfo);
+        Assert.Equal(new Uri("https://github.com/melnorme6/ExtSieve/releases"), provider.ReleasePageUri);
         Assert.Equal(new Uri("https://ko-fi.com/melnorme"), provider.SupportPageUri);
     }
 
     [Theory]
-    [InlineData("1.0.0", null)]
-    [InlineData("1.0.0-beta.1", null)]
-    [InlineData("1.0.0+abcdef1", "abcdef1")]
-    [InlineData("1.0.0-rc.1+abcdef123456.build.42", "abcdef1")]
-    [InlineData("1.0.0+private-runner-name", null)]
-    public void BuildInfoUsesOnlyASafeShortCommitFromBuildMetadata(
-        string informationalVersion,
+    [InlineData(null, null)]
+    [InlineData("", null)]
+    [InlineData("abcdef1", null)]
+    [InlineData("abcdef1234567890abcdef1234567890abcdef12345", null)]
+    [InlineData("zbcdef1234567890abcdef1234567890abcdef12", null)]
+    [InlineData(" abcdef1234567890abcdef1234567890abcdef12", null)]
+    [InlineData("1.1.0+abcdef1234567890abcdef1234567890abcdef12", null)]
+    [InlineData("ABCDEF1234567890ABCDEF1234567890ABCDEF12", "abcdef1234567890abcdef1234567890abcdef12")]
+    public void PublicRevisionRequiresAFullHexadecimalSha(
+        string? revision,
         string? expected)
     {
         Assert.Equal(
             expected,
-            AssemblyProductAboutProvider.GetSafeBuildInfo(informationalVersion));
+            AssemblyProductAboutProvider.GetValidatedPublicSourceRevision(revision));
+    }
+
+    [Theory]
+    [InlineData("https://github.com/example/extsieve/releases", "https://github.com/example/extsieve/commit/abcdef1234567890abcdef1234567890abcdef12")]
+    [InlineData("https://github.com/example/extsieve/releases/", "https://github.com/example/extsieve/commit/abcdef1234567890abcdef1234567890abcdef12")]
+    [InlineData("https://code-host.invalid/example/extsieve/releases", null)]
+    public void PublicCommitUsesTheConfiguredPublicRepositoryAndTheFullRevision(string releaseUrl, string? expectedUri)
+    {
+        var provider = new AssemblyProductAboutProvider(CreateSyntheticAssembly(
+            "ABCDEF1234567890ABCDEF1234567890ABCDEF12", releaseUrl), Path.GetTempPath());
+        Assert.Equal("abcdef1", provider.BuildInfo);
+        Assert.Equal("abcdef1234567890abcdef1234567890abcdef12", provider.PublicSourceRevision);
+        Assert.Equal(expectedUri is null ? null : new Uri(expectedUri), provider.CommitPageUri);
+    }
+
+    private static AssemblyBuilder CreateSyntheticAssembly(string? revision, string releaseUrl = "https://github.com/example/extsieve/releases")
+    {
+        var assembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("SyntheticProduct"), AssemblyBuilderAccess.Run);
+        const string privateRevision = "1111111111111111111111111111111111111111";
+        assembly.SetCustomAttribute(new CustomAttributeBuilder(
+            typeof(AssemblyInformationalVersionAttribute).GetConstructor([typeof(string)])!, ["1.1.0+" + privateRevision]));
+        foreach (var (key, value) in new[] { ("SourceRevisionId", privateRevision), ("PublicReleaseUrl", releaseUrl), ("PublicSourceRevision", revision) })
+        {
+            if (value is not null) assembly.SetCustomAttribute(new CustomAttributeBuilder(
+                typeof(AssemblyMetadataAttribute).GetConstructor([typeof(string), typeof(string)])!, [key, value]));
+        }
+        return assembly;
     }
 
     [Theory]

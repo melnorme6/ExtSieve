@@ -1,0 +1,29 @@
+---
+import { en } from '../content/en';
+import type { DownloadPresentation } from '../lib/download-presentation';
+import Icon from './Icon.astro';
+interface Props { release: DownloadPresentation; }
+const { release } = Astro.props;
+const platforms = en.download.platforms.map(platform => ({ ...platform, packages: release[platform.family] }));
+---
+
+<section id="download" class="section section-surface" aria-labelledby="download-title">
+  <div class="container download-inner">
+    <div class="download-header">
+      <div><h2 id="download-title">{en.download.title}</h2><p>{en.download.description}</p></div>
+      {release.version && <span class="release-version">v{release.version}</span>}
+    </div>
+    {release.status === 'ready' ? <div class="download-cards">
+      {platforms.map(({ name, family, architecture, packages }) => <article class="card download-card">
+        <div class="platform-heading"><span class="platform-icon"><Icon name={family} /></span><h3 id={`download-${family}`}>{name}</h3><span class="architecture-badge">{architecture}</span></div>
+        <ul class="package-links" aria-labelledby={`download-${family}`}>
+          {packages.map(({ label, href }) => <li><a class="package-row" href={href} tabindex="0"><span>{label}</span><Icon name="download" /></a></li>)}
+        </ul>
+      </article>)}
+    </div> : <p class="download-status">{release.status === 'no-stable-release' ? en.download.noStable : en.download.unavailable}</p>}
+    <div class="download-secondary">
+      <a href={release.releasesUrl} tabindex="0">{en.download.action.label}<Icon name="external" /></a>
+      <a href={release.requirementsUrl} tabindex="0">{en.download.requirements.label}<Icon name="external" /></a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="using:System"
+                    xmlns:converters="using:Avalonia.Controls.Converters">
+  <sys:Double x:Key="ExtSieveControlHeight">38</sys:Double>
+  <sys:Double x:Key="ExtSieveInnerControlHeight">36</sys:Double>
+  <sys:Double x:Key="ExtSieveActionWidth">38</sys:Double>
+  <sys:Double x:Key="ExtSieveActionIconSize">18</sys:Double>
+  <CornerRadius x:Key="ExtSieveControlCorners">3</CornerRadius>
+  <Thickness x:Key="ExtSieveControlBorder">1</Thickness>
+  <Thickness x:Key="ExtSieveCompoundLeftBorder">1,1,0,1</Thickness>
+  <Thickness x:Key="ExtSieveControlPadding">10,4</Thickness>
+  <Thickness x:Key="ExtSieveActionPadding">7</Thickness>
+  <converters:CornerRadiusFilterConverter x:Key="ExtSieveLeftCorners" Filter="TopLeft,BottomLeft" />
+  <converters:CornerRadiusFilterConverter x:Key="ExtSieveRightCorners" Filter="TopRight,BottomRight" />
+</ResourceDictionary>

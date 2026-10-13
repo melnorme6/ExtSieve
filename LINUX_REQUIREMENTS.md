@@ -3,7 +3,30 @@
 The `linux-x64` packages target 64-bit glibc-based desktop distributions. They do not
 target Alpine Linux or other musl-based systems, and they do not currently target ARM64.
 
-## Verified environments
+## Project compatibility targets
+
+The project retains Debian 12 and Debian 13; Ubuntu 22.04, 24.04 and 26.04 LTS;
+and Fedora 43 and 44 as x86_64 compatibility targets. Each release requires fresh
+validation of the same DEB across Debian/Ubuntu, the same RPM across Fedora, and
+the portable archive on Ubuntu 22.04 LTS, Debian 13 and Fedora 44. Verification
+applies to the exact tested packages, not to a version number or distribution name
+alone. The historical results below describe the released 1.0.0 artifacts.
+
+### Debian 12 and runtime-vendor support
+
+Debian 12 is retained as a project compatibility target. Project automated package
+lifecycle testing and a successful manual application test have established
+compatibility on Debian 12 for tested builds. The final packages of each release
+still require their own lifecycle, native-library and graphical-launch checks.
+
+Project compatibility and runtime-vendor support are separate. At the October 2026
+assessment, Microsoft's [.NET 10 supported Linux table](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md)
+lists Debian 13, the three Ubuntu LTS targets and Fedora 43/44; it does not list
+Debian 12 as supported. ExtSieve does not claim Microsoft .NET 10 support for
+Debian 12. Debian's own [LTS lifecycle](https://www.debian.org/releases/) is also
+distinct from the runtime vendor's support policy.
+
+## Verified environments for 1.0.0
 
 The same `extsieve_1.0.0_amd64.deb` release package has passed the complete native-package
 lifecycle on:

@@ -14,10 +14,10 @@ public sealed class ProductVersionTests
         var provider = new AssemblyProductVersionProvider(assembly);
         var fileVersion = FileVersionInfo.GetVersionInfo(assembly.Location);
 
-        Assert.Equal(new Version(1, 0, 0, 0), assembly.GetName().Version);
-        Assert.Equal("1.0.0.0", fileVersion.FileVersion);
-        Assert.Equal("1.0.0", provider.InformationalVersion);
-        Assert.Equal("1.0.0", provider.PublicVersion);
+        Assert.Equal(new Version(1, 1, 0, 0), assembly.GetName().Version);
+        Assert.Equal("1.1.0.0", fileVersion.FileVersion);
+        Assert.Equal("1.1.0", provider.InformationalVersion);
+        Assert.Equal("1.1.0", provider.PublicVersion);
     }
 
     [Theory]

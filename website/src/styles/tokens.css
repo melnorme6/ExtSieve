@@ -1,0 +1,50 @@
+:root {
+  color-scheme: light;
+  --color-background: #ffffff;
+  --color-surface: #f7f9fc;
+  --color-card: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #111827;
+  --color-muted: #4b5563;
+  --color-brand: #1677ea;
+  --color-link: #1264c7;
+  --color-button: #1264c7;
+  --color-button-hover: #0f55ac;
+  --color-button-text: #ffffff;
+  --color-focus: #1264c7;
+  --font-body: 'Inter', 'Inter Complete', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --content-width: 75rem;
+  --radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-background: #111318;
+    --color-surface: #1c2027;
+    --color-card: #111318;
+    --color-border: #3b4350;
+    --color-text: #f3f4f6;
+    --color-muted: #c3cbd7;
+    --color-link: #78b6ff;
+    --color-button: #78b6ff;
+    --color-button-hover: #9bc9ff;
+    --color-button-text: #111318;
+    --color-focus: #78b6ff;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-background: #111318;
+  --color-surface: #1c2027;
+  --color-card: #111318;
+  --color-border: #3b4350;
+  --color-text: #f3f4f6;
+  --color-muted: #c3cbd7;
+  --color-link: #78b6ff;
+  --color-button: #78b6ff;
+  --color-button-hover: #9bc9ff;
+  --color-button-text: #111318;
+  --color-focus: #78b6ff;
+}

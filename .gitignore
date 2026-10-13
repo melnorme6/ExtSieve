@@ -38,6 +38,14 @@ coverage.*
 *.snupkg
 packages/
 
+# Website dependencies, generated output, and local caches
+/website/node_modules/
+/website/dist/
+/website/.astro/
+/website/.vite/
+/website/test-results/
+/website/playwright-report/
+
 # Operating systems
 .DS_Store
 Thumbs.db

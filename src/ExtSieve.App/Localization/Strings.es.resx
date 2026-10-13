@@ -61,7 +61,7 @@
   <data name="AboutThirdPartyNotices" xml:space="preserve"><value>Avisos de terceros</value></data>
   <data name="UnavailableValue" xml:space="preserve"><value>-</value></data>
   <data name="OpenLicense" xml:space="preserve"><value>Abrir documento de licencia</value></data>
-  <data name="OpenReleasePage" xml:space="preserve"><value>Abrir página de versiones</value></data>
+  <data name="OpenReleasePage" xml:space="preserve"><value>Abrir versiones en GitHub</value></data>
   <data name="DonateOnKofi" xml:space="preserve"><value>Donar en Ko-fi</value></data>
   <data name="OpenThirdPartyNotices" xml:space="preserve"><value>Abrir avisos</value></data>
   <data name="AboutValueAccessibleNameFormat" xml:space="preserve"><value>{0}: {1}</value></data>
@@ -79,7 +79,7 @@
   <data name="StatusSuccess" xml:space="preserve"><value>Archivo creado correctamente.</value></data>
   <data name="StatusError" xml:space="preserve"><value>No se pudo completar la operación. Revisa los detalles técnicos e inténtalo de nuevo.</value></data>
   <data name="StatusSettings" xml:space="preserve"><value>Listo. Configura tus preferencias.</value></data>
-  <data name="SelectionSummaryFormat" xml:space="preserve"><value>{0:N0} extensiones · {1:N0} archivos · {2} · {3:N0} conflictos de nombres de archivo</value></data>
+  <data name="SelectionSummaryFormat" xml:space="preserve"><value>{0:N0} extensiones · {1:N0} archivos · {2} · {3} · {4:N0} conflictos de nombres de archivo</value></data>
   <data name="SuccessSummaryFormat" xml:space="preserve"><value>{0:N0} archivos · ZIP de {1} · {2} segundos · {3}</value></data>
   <data name="SortAscending" xml:space="preserve"><value>ascendente</value></data>
   <data name="SortDescending" xml:space="preserve"><value>descendente</value></data>
@@ -89,4 +89,70 @@
   <data name="ReplaceArchiveMessageFormat" xml:space="preserve"><value>Ya existe un archivo en {0}. ¿Quieres reemplazarlo solo cuando el nuevo archivo esté completo?</value></data>
   <data name="Replace" xml:space="preserve"><value>Reemplazar</value></data>
   <data name="SettingsSaveWarning" xml:space="preserve"><value>La preferencia cambió para esta sesión, pero no se pudo guardar.</value></data>
+  <data name="CloseDialog" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="ExtensionProfiles" xml:space="preserve"><value>Perfiles de extensiones</value></data>
+  <data name="DeselectProfile" xml:space="preserve"><value>Deseleccionar perfil</value></data>
+  <data name="SaveProfile" xml:space="preserve"><value>Guardar perfil</value></data>
+  <data name="ManageProfiles" xml:space="preserve"><value>Gestionar perfiles</value></data>
+  <data name="NewProfile" xml:space="preserve"><value>Nuevo perfil</value></data>
+  <data name="RenameProfile" xml:space="preserve"><value>Renombrar perfil</value></data>
+  <data name="DuplicateProfile" xml:space="preserve"><value>Duplicar perfil</value></data>
+  <data name="DeleteProfile" xml:space="preserve"><value>Eliminar perfil</value></data>
+  <data name="ProfileName" xml:space="preserve"><value>Nombre del perfil</value></data>
+  <data name="ProfileSaveHelp" xml:space="preserve"><value>Guarda estos grupos de extensiones como un perfil local reutilizable.</value></data>
+  <data name="ProfileExtensionsFormat" xml:space="preserve"><value>Extensiones: {0:N0}</value></data>
+  <data name="ProfilesHelp" xml:space="preserve"><value>Crea, edita, importa o exporta perfiles. Selecciona un perfil para gestionar sus extensiones.</value></data>
+  <data name="ProfilesApplyHelp" xml:space="preserve"><value>Selecciona un perfil de extensiones.</value></data>
+  <data name="ProfileInvalidName" xml:space="preserve"><value>Introduce un nombre de 1 a 80 caracteres sin caracteres de control.</value></data>
+  <data name="ProfileDuplicateName" xml:space="preserve"><value>Ya existe un perfil con este nombre. Elige otro nombre.</value></data>
+  <data name="DeleteProfileMessageFormat" xml:space="preserve"><value>¿Eliminar el perfil «{0}»?</value></data>
+  <data name="ProfileAppliedFormat" xml:space="preserve"><value>Perfil «{0}» aplicado.</value></data>
+  <data name="ProfileAppliedMissingFormat" xml:space="preserve"><value>Perfil «{0}» aplicado. Extensiones ausentes ignoradas.</value></data>
+  <data name="ProfilesLoadWarning" xml:space="preserve"><value>No se pudieron cargar los perfiles. Los datos se han conservado; repara el almacenamiento y reinicia para editarlos.</value></data>
+  <data name="ProfilesSaveWarning" xml:space="preserve"><value>No se pudo guardar el cambio. Los perfiles existentes se han conservado.</value></data>
+  <data name="Exclusions" xml:space="preserve"><value>Exclusiones</value></data>
+  <data name="ExclusionsButtonFormat" xml:space="preserve"><value>Exclusiones · {0:N0}</value></data>
+  <data name="ExcludedFolderSingularFormat" xml:space="preserve"><value>{0:N0} carpeta excluida</value></data>
+  <data name="ExcludedFolderPluralFormat" xml:space="preserve"><value>{0:N0} carpetas excluidas</value></data>
+  <data name="FolderExclusions" xml:space="preserve"><value>Excluir subcarpetas</value></data>
+  <data name="ExclusionsHelp" xml:space="preserve"><value>Marca una carpeta para excluirla y excluir sus subcarpetas del análisis y de los archivos. Expande las carpetas para navegar.</value></data>
+  <data name="SearchFolders" xml:space="preserve"><value>Buscar carpetas…</value></data>
+  <data name="SearchAction" xml:space="preserve"><value>Buscar</value></data>
+  <data name="ApplyExclusions" xml:space="preserve"><value>Aplicar</value></data>
+  <data name="ResetChanges" xml:space="preserve"><value>Restablecer cambios</value></data>
+  <data name="FolderBrowseWarning" xml:space="preserve"><value>No se pudieron listar algunas carpetas. No se siguen los enlaces.</value></data>
+  <data name="FolderSearchLimit" xml:space="preserve"><value>La búsqueda alcanzó el límite (10.000 carpetas o 500 resultados). Navega o concreta la búsqueda.</value></data>
+  <data name="FolderSearchEmpty" xml:space="preserve"><value>No se encontraron carpetas coincidentes.</value></data>
+  <data name="ExclusionsLoadWarning" xml:space="preserve"><value>No se pudieron cargar las exclusiones. No se aplicaron exclusiones. Los datos se han conservado.</value></data>
+  <data name="ExclusionsSaveWarning" xml:space="preserve"><value>Las exclusiones se aplican en esta sesión, pero no se pudieron guardar para la próxima.</value></data>
+  <data name="ImportProfiles" xml:space="preserve"><value>Importar perfiles</value></data>
+  <data name="ExportProfile" xml:space="preserve"><value>Exportar perfil</value></data>
+  <data name="AddProfileExtension" xml:space="preserve"><value>Añadir extensión</value></data>
+  <data name="ProfileEmptyHelp" xml:space="preserve"><value>Asigna un nombre al nuevo perfil. Podrás añadir extensiones en Gestionar perfiles.</value></data>
+  <data name="ProfileSelectHelp" xml:space="preserve"><value>Selecciona un perfil para editar sus extensiones.</value></data>
+  <data name="ProfileExtensionHelp" xml:space="preserve"><value>Introduce una extensión como cs o .cs. Se permiten extensiones ausentes del análisis actual.</value></data>
+  <data name="ProfileExtensionInvalid" xml:space="preserve"><value>Introduce una clave de extensión válida.</value></data>
+  <data name="ProfileExtensionDuplicate" xml:space="preserve"><value>Esta extensión ya está presente en el perfil.</value></data>
+  <data name="RemoveProfileExtensionFormat" xml:space="preserve"><value>Quitar extensión {0}</value></data>
+  <data name="ProfileJsonFiles" xml:space="preserve"><value>Archivos de perfiles JSON</value></data>
+  <data name="ProfileImportSummaryFormat" xml:space="preserve"><value>Perfiles importados: {0:N0}. Nombres existentes omitidos: {1:N0}.</value></data>
+  <data name="ProfileImportWarning" xml:space="preserve"><value>No se pudieron importar los perfiles. Comprueba el JSON, la versión del esquema, los nombres y las extensiones.</value></data>
+  <data name="ProfileExportSuccess" xml:space="preserve"><value>Perfil exportado.</value></data>
+  <data name="ProfileExportWarning" xml:space="preserve"><value>No se pudo exportar el perfil. Comprueba el destino e inténtalo de nuevo.</value></data>
+  <data name="NewProfileName" xml:space="preserve"><value>Nombre del nuevo perfil</value></data>
+  <data name="ProfileDuplicateHelpFormat" xml:space="preserve"><value>Crea una copia del perfil «{0}».</value></data>
+  <data name="ProfileCopyNameFormat" xml:space="preserve"><value>{0} - copia</value></data>
+  <data name="ProfileCopyNumberedNameFormat" xml:space="preserve"><value>{0} - copia {1}</value></data>
+  <data name="ShowOnlyExcluded" xml:space="preserve"><value>Mostrar solo excluidas</value></data>
+  <data name="DeselectAllExclusions" xml:space="preserve"><value>Deseleccionar todas</value></data>
+  <data name="ProfileExtensionSingularFormat" xml:space="preserve"><value>{0:N0} extensión</value></data>
+  <data name="ProfileExtensionPluralFormat" xml:space="preserve"><value>{0:N0} extensiones</value></data>
+  <data name="CheckForUpdates" xml:space="preserve"><value>Buscar actualizaciones</value></data>
+  <data name="CheckingForUpdates" xml:space="preserve"><value>Comprobando...</value></data>
+  <data name="AppUpToDate" xml:space="preserve"><value>ExtSieve está actualizado.</value></data>
+  <data name="UpdateAvailableFormat" xml:space="preserve"><value>ExtSieve {0} está disponible</value></data>
+  <data name="OpenDetectedRelease" xml:space="preserve"><value>Abrir versión</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>No se pudieron comprobar las actualizaciones.</value></data>
+  <data name="DevelopmentBuild" xml:space="preserve"><value>Compilación de desarrollo</value></data>
+  <data name="OpenCommitOnGitHub" xml:space="preserve"><value>Abrir commit en GitHub</value></data>
 </root>

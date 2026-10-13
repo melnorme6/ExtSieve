@@ -1,3 +1,4 @@
+using ExtSieve.App.LocalData;
 using ExtSieve.App.Localization;
 using ExtSieve.App.Services;
 using ExtSieve.App.Settings;
@@ -24,7 +25,12 @@ internal sealed class MainWindowFixture : IDisposable
         ProductVersion = new StubProductVersionProvider();
         ProductAbout = new StubProductAboutProvider();
         ExternalResources = new StubExternalResourceService();
+        Updates = new StubUpdateChecker();
         Planner = new StubArchivePlanner();
+        Profiles = new JsonProfileStore(Path.Combine(RootPath, "local-data", "profiles.json"));
+        ProfileStore = new CountingProfileStore(Profiles);
+        Exclusions = new JsonExclusionStore(Path.Combine(RootPath, "local-data", "exclusions.json"));
+        FeatureDialogs = new StubFeatureDialogService();
         ViewModel = new MainWindowViewModel(
             Localization,
             Scanner,
@@ -36,7 +42,12 @@ internal sealed class MainWindowFixture : IDisposable
             Theme,
             ProductVersion,
             ProductAbout,
-            ExternalResources);
+            ExternalResources,
+            ProfileStore,
+            Exclusions,
+            FeatureDialogs,
+            new FolderBrowser(),
+            Updates);
     }
 
     public string RootPath { get; }
@@ -50,8 +61,13 @@ internal sealed class MainWindowFixture : IDisposable
     public StubProductVersionProvider ProductVersion { get; }
     public StubProductAboutProvider ProductAbout { get; }
     public StubExternalResourceService ExternalResources { get; }
+    public StubUpdateChecker Updates { get; }
     public StubArchivePlanner Planner { get; }
     public MainWindowViewModel ViewModel { get; }
+    public JsonProfileStore Profiles { get; }
+    public CountingProfileStore ProfileStore { get; }
+    public JsonExclusionStore Exclusions { get; }
+    public StubFeatureDialogService FeatureDialogs { get; }
 
     public ScannedFile CreateScannedFile(string relativePath, byte[]? content = null)
     {
@@ -86,6 +102,24 @@ internal sealed class MainWindowFixture : IDisposable
     }
 }
 
+internal sealed class CountingProfileStore(IProfileStore inner) : IProfileStore
+{
+    public int LoadCount { get; private set; }
+    public int SaveCount { get; private set; }
+
+    public Task<LocalDataResult<IReadOnlyList<ExtensionProfile>>> LoadAsync(CancellationToken cancellationToken = default)
+    {
+        LoadCount++;
+        return inner.LoadAsync(cancellationToken);
+    }
+
+    public Task SaveAsync(IReadOnlyList<ExtensionProfile> profiles, CancellationToken cancellationToken = default)
+    {
+        SaveCount++;
+        return inner.SaveAsync(profiles, cancellationToken);
+    }
+}
+
 internal sealed class StubArchivePlanner : IArchivePlanner
 {
     private readonly ArchivePlanner _inner = new();
@@ -105,14 +139,48 @@ internal sealed class StubFolderScanner : IFolderScanner
         (_, _, _) => Task.FromResult(new ScanResult([], [], [], TimeSpan.Zero));
 
     public int CallCount { get; private set; }
+    public FolderExclusionSet? LastExclusions { get; private set; }
 
     public Task<ScanResult> ScanAsync(
         string sourceDirectory,
         IProgress<long>? discoveredFileProgress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        FolderExclusionSet? exclusions = null)
     {
         CallCount++;
+        LastExclusions = exclusions;
         return Handler(sourceDirectory, discoveredFileProgress, cancellationToken);
+    }
+}
+
+internal sealed class StubFeatureDialogService : IFeatureDialogService
+{
+    public string? Name { get; set; }
+    public bool DeleteConfirmed { get; set; } = true;
+    public int DeleteConfirmationCount { get; private set; }
+    public string? DeleteMessage { get; private set; }
+    public Func<Task<bool>>? ConfirmDeleteHandler { get; set; }
+    public Func<FolderExclusionsViewModel, Task<bool>> EditHandler { get; set; } = _ => Task.FromResult(false);
+    public Func<ProfileNameViewModel, Task<string?>>? NameHandler { get; set; }
+    public Task<string?> RequestProfileNameAsync(ProfileNameViewModel viewModel) => NameHandler?.Invoke(viewModel) ?? Task.FromResult(Name);
+    public Func<ProfileExtensionViewModel, Task<string?>> ExtensionHandler { get; set; } = _ => Task.FromResult<string?>(null);
+    public Func<Task<IReadOnlyList<ExtensionProfile>?>> ImportHandler { get; set; } = () => Task.FromResult<IReadOnlyList<ExtensionProfile>?>(null);
+    public ExtensionProfile? ExportedProfile { get; private set; }
+    public Func<ExtensionProfile, Task<bool>> ExportHandler { get; set; } = _ => Task.FromResult(true);
+    public Task<string?> RequestProfileExtensionAsync(ProfileExtensionViewModel viewModel) => ExtensionHandler(viewModel);
+    public Task<IReadOnlyList<ExtensionProfile>?> ImportProfilesAsync(string title, string fileTypeLabel) => ImportHandler();
+    public Task<bool> ExportProfileAsync(ExtensionProfile profile, string title, string fileTypeLabel)
+    {
+        ExportedProfile = profile;
+        return ExportHandler(profile);
+    }
+    public Task ManageProfilesAsync(ProfileManagerViewModel viewModel) => Task.CompletedTask;
+    public Task<bool> EditExclusionsAsync(FolderExclusionsViewModel viewModel) => EditHandler(viewModel);
+    public Task<bool> ConfirmDeleteProfileAsync(string title, string message, string deleteLabel, string cancelLabel)
+    {
+        DeleteConfirmationCount++;
+        DeleteMessage = message;
+        return ConfirmDeleteHandler?.Invoke() ?? Task.FromResult(DeleteConfirmed);
     }
 }
 
@@ -231,11 +299,26 @@ internal sealed class StubProductAboutProvider : IProductAboutProvider
 {
     public string ProductName { get; set; } = "ExtSieve";
     public string? BuildInfo { get; set; }
+    public string? PublicSourceRevision { get; set; }
+    public Uri? CommitPageUri { get; set; }
     public string? LicenseName { get; set; } = "MIT License";
     public string? LicenseDocumentPath { get; set; }
     public Uri? ReleasePageUri { get; set; }
     public Uri? SupportPageUri { get; set; }
     public string? ThirdPartyNoticesPath { get; set; }
+}
+
+internal sealed class StubUpdateChecker : IUpdateChecker
+{
+    public int CallCount { get; private set; }
+    public Func<CancellationToken, Task<UpdateCheckResult>> Handler { get; set; } =
+        _ => Task.FromResult(new UpdateCheckResult(UpdateCheckOutcome.UpToDate));
+
+    public Task<UpdateCheckResult> CheckAsync(string currentVersion, CancellationToken cancellationToken)
+    {
+        CallCount++;
+        return Handler(cancellationToken);
+    }
 }
 
 internal sealed class StubExternalResourceService : IExternalResourceService

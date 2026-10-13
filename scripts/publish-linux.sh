@@ -9,7 +9,6 @@ product_directory=$(CDPATH= cd -- "$script_directory/.." && pwd)
 solution_path="$product_directory/ExtSieve.sln"
 project_path="$product_directory/src/ExtSieve.App/ExtSieve.App.csproj"
 build_props_path="$product_directory/Directory.Build.props"
-artifacts_directory="$product_directory/artifacts"
 
 fail() {
     printf 'Error: %s\n' "$1" >&2
@@ -59,49 +58,85 @@ copy_package_notice() {
     cp -- "$source_path" "$package_directory/$destination_name"
 }
 
-for command_name in dotnet grep sed find sort sha256sum tar gzip mktemp tee nfpm; do
+public_release_build=${PUBLIC_RELEASE_BUILD:-false}
+public_source_revision=${PUBLIC_SOURCE_REVISION:-}
+provenance_arguments=("-p:PublicReleaseBuild=$public_release_build" "-p:PublicSourceRevision=$public_source_revision")
+require_command dotnet
+dotnet msbuild "$project_path" -target:ValidatePublicSourceRevision "${provenance_arguments[@]}"
+
+for command_name in dotnet grep sed find sort sha256sum tar gzip mktemp tee realpath cmp cat; do
     require_command "$command_name"
 done
-
-nfpm_version=$(nfpm --version 2>&1)
-[[ $nfpm_version == *"2.47.0"* ]] || fail \
-    "nFPM 2.47.0 is required; observed: $nfpm_version"
 
 version=$(sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' "$build_props_path" |
     head -n 1)
 [[ -n $version ]] || fail 'Directory.Build.props does not define the product Version.'
 
+artifacts_directory=${EXTSIEVE_ARTIFACT_DIRECTORY:-"$product_directory/artifacts/releases/$version/candidate"}
+work_directory=${EXTSIEVE_WORK_DIRECTORY:-}
+check_directory_ancestors() {
+    local ancestor=$1
+    while [[ $ancestor != / ]]; do
+        [[ ! -L $ancestor ]] || fail "Output ancestor is a symbolic link: $ancestor"
+        [[ ! -e $ancestor || -d $ancestor ]] || fail "Output ancestor is not a directory: $ancestor"
+        ancestor=$(dirname -- "$ancestor")
+    done
+}
+artifacts_directory=$(realpath -m -s -- "$artifacts_directory")
+check_directory_ancestors "$artifacts_directory"
+if [[ -n $work_directory ]]; then
+    work_directory=$(realpath -m -s -- "$work_directory")
+    check_directory_ancestors "$work_directory"
+    [[ ! -e $work_directory ]] || fail 'Work directory already exists; use a fresh task directory.'
+    [[ $work_directory != "$artifacts_directory" &&
+        $work_directory != "$artifacts_directory/"* &&
+        $artifacts_directory != "$work_directory/"* ]] || fail \
+        'Artifact and work directories must be separate and non-overlapping.'
+fi
 runtime_identifier=linux-x64
 package_name="ExtSieve-$version-$runtime_identifier"
-package_directory="$artifacts_directory/$package_name"
-archive_path="$artifacts_directory/$package_name.tar.gz"
-manifest_path="$artifacts_directory/$package_name.manifest.sha256"
-archive_checksum_path="$archive_path.sha256"
-native_root="$artifacts_directory/.native-package-root-$version"
 nfpm_config="$product_directory/packaging/linux/nfpm.yaml"
-deb_path="$artifacts_directory/extsieve_${version}_amd64.deb"
-deb_manifest_path="$artifacts_directory/extsieve_${version}_amd64.manifest.sha256"
-deb_checksum_path="$deb_path.sha256"
-rpm_path="$artifacts_directory/extsieve-${version}-1.x86_64.rpm"
-rpm_manifest_path="$artifacts_directory/extsieve-${version}-1.x86_64.manifest.sha256"
-rpm_checksum_path="$rpm_path.sha256"
-
-if [[ ! -d $artifacts_directory ]]; then
-    mkdir -p -- "$artifacts_directory"
+output_names=(
+    "$package_name.tar.gz" "$package_name.manifest.sha256" "$package_name.tar.gz.sha256"
+    "extsieve_${version}_amd64.deb" "extsieve_${version}_amd64.manifest.sha256" "extsieve_${version}_amd64.deb.sha256"
+    "extsieve-${version}-1.x86_64.rpm" "extsieve-${version}-1.x86_64.manifest.sha256" "extsieve-${version}-1.x86_64.rpm.sha256"
+)
+for name in "${output_names[@]}"; do
+    [[ ! -e $artifacts_directory/$name && ! -L $artifacts_directory/$name ]] || fail \
+        "Artifact already exists and will be preserved: $name. Select a fresh artifact directory."
+done
+require_command nfpm
+nfpm_version=$(nfpm --version 2>&1)
+[[ $nfpm_version == *"2.47.0"* ]] || fail \
+    "nFPM 2.47.0 is required; observed: $nfpm_version"
+if [[ -z $work_directory ]]; then
+    work_directory=$(mktemp -d "${TMPDIR:-/tmp}/extsieve-publish-linux.XXXXXXXX")
+    check_directory_ancestors "$work_directory"
+else
+    mkdir -p -- "$(dirname -- "$work_directory")"
+    mkdir -- "$work_directory"
 fi
-rm -rf -- "$package_directory"
-rm -rf -- "$native_root"
-rm -f -- \
-    "$archive_path" "$manifest_path" "$archive_checksum_path" \
-    "$deb_path" "$deb_manifest_path" "$deb_checksum_path" \
-    "$rpm_path" "$rpm_manifest_path" "$rpm_checksum_path"
+staging_directory="$work_directory/output"
+mkdir -- "$staging_directory"
+package_directory="$work_directory/$package_name"
+archive_path="$staging_directory/$package_name.tar.gz"
+manifest_path="$staging_directory/$package_name.manifest.sha256"
+archive_checksum_path="$archive_path.sha256"
+native_root="$work_directory/native-root"
+deb_path="$staging_directory/extsieve_${version}_amd64.deb"
+deb_manifest_path="$staging_directory/extsieve_${version}_amd64.manifest.sha256"
+deb_checksum_path="$deb_path.sha256"
+rpm_path="$staging_directory/extsieve-${version}-1.x86_64.rpm"
+rpm_manifest_path="$staging_directory/extsieve-${version}-1.x86_64.manifest.sha256"
+rpm_checksum_path="$rpm_path.sha256"
+printf 'Work directory (retain until verification, then remove task-owned payload): %s\n' "$work_directory"
 
 cd "$product_directory"
-dotnet restore "$solution_path" --locked-mode
-dotnet build "$solution_path" --configuration Release --no-restore
+dotnet restore "$solution_path" --locked-mode "${provenance_arguments[@]}"
+dotnet build "$solution_path" --configuration Release --no-restore "${provenance_arguments[@]}"
 test_log=$(mktemp)
 trap 'rm -f -- "$test_log"' EXIT
-if ! dotnet test "$solution_path" --configuration Release --no-build --no-restore |
+if ! dotnet test --solution "$solution_path" --configuration Release --no-build --no-restore "${provenance_arguments[@]}" |
     tee "$test_log"; then
     fail 'Release tests failed.'
 fi
@@ -117,6 +152,7 @@ dotnet publish "$project_path" \
     --self-contained true \
     --no-restore \
     --output "$package_directory" \
+    "${provenance_arguments[@]}" \
     -p:PublishSingleFile=false \
     -p:PublishTrimmed=false \
     -p:PublishAot=false \
@@ -127,6 +163,8 @@ for document in LICENSE README.md CHANGELOG.md SECURITY.md THIRD_PARTY_NOTICES.m
     LINUX_REQUIREMENTS.md; do
     cp -- "$product_directory/$document" "$package_directory/$document"
 done
+mkdir -- "$package_directory/docs"
+cp -- "$product_directory/docs/LOCAL_DATA.md" "$package_directory/docs/LOCAL_DATA.md"
 
 for directory in \
     "$package_directory/share" \
@@ -205,6 +243,7 @@ while IFS= read -r -d '' source_path; do
 done < <(find "$package_directory" -mindepth 1 -maxdepth 1 \
     ! -name extsieve \
     ! -name share \
+    ! -name docs \
     ! -name README.md \
     ! -name CHANGELOG.md \
     ! -name SECURITY.md \
@@ -221,6 +260,8 @@ for document in LICENSE THIRD_PARTY_NOTICES.md README.md CHANGELOG.md \
     LINUX_REQUIREMENTS.md; do
     cp -- "$product_directory/$document" "$native_doc_directory/$document"
 done
+mkdir -- "$native_doc_directory/docs"
+cp -- "$product_directory/docs/LOCAL_DATA.md" "$native_doc_directory/docs/LOCAL_DATA.md"
 chmod 0755 -- "$native_root/usr/bin/extsieve" "$native_app_directory/ExtSieve.App"
 
 nfpm_package_root=$native_root
@@ -235,7 +276,7 @@ EXTSIEVE_VERSION=$version EXTSIEVE_PACKAGE_ROOT=$nfpm_package_root \
 [[ -f $deb_path ]] || fail "DEB output is missing: $deb_path"
 [[ -f $rpm_path ]] || fail "RPM output is missing: $rpm_path"
 
-native_manifest="$artifacts_directory/.native-package.manifest.sha256"
+native_manifest="$work_directory/native-package.manifest.sha256"
 : > "$native_manifest"
 while IFS= read -r -d '' relative_path; do
     hash=$(sha256sum "$native_root/$relative_path")
@@ -277,7 +318,7 @@ tar \
     --mode='a-x,a+rX,u+w' \
     --exclude="$package_name/ExtSieve.App" \
     --exclude="$package_name/extsieve" \
-    -C "$artifacts_directory" \
+    -C "$work_directory" \
     -cf "$temporary_tar" \
     "$package_name"
 tar \
@@ -288,7 +329,7 @@ tar \
     --group=0 \
     --numeric-owner \
     --mode=0755 \
-    -C "$artifacts_directory" \
+    -C "$work_directory" \
     -f "$temporary_tar" \
     "$package_name/ExtSieve.App" \
     "$package_name/extsieve"
@@ -300,6 +341,13 @@ archive_hash=$(sha256sum "$archive_path")
 printf '%s  %s\n' "${archive_hash%% *}" "$(basename "$archive_path")" \
     > "$archive_checksum_path"
 
+mkdir -p -- "$artifacts_directory"
+for name in "${output_names[@]}"; do
+    # Exclusive creation preserves a destination that appears after preflight.
+    (set -o noclobber; cat -- "$staging_directory/$name" > "$artifacts_directory/$name")
+    cmp -- "$staging_directory/$name" "$artifacts_directory/$name"
+done
+printf 'Artifact directory: %s\n' "$artifacts_directory"
 printf 'Package directory: %s\n' "$package_directory"
 printf 'Package archive:   %s\n' "$archive_path"
 printf 'File manifest:     %s\n' "$manifest_path"

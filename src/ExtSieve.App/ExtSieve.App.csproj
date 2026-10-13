@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExtSieve.Core\ExtSieve.Core.csproj" />
+    <InternalsVisibleTo Include="ExtSieve.App.Tests" />
   </ItemGroup>
 
   <ItemGroup>

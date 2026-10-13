@@ -6,7 +6,51 @@ The format follows Keep a Changelog, and product versions follow Semantic Versio
 
 ## Unreleased
 
-No changes yet.
+Target version: 1.1.0.
+
+### Added
+
+- About displays only the explicitly embedded public GitHub commit, shortened to
+  seven characters with a public commit link. Development builds show a localized
+  Development build value; public packaging rejects missing/invalid provenance.
+  The GitHub Releases link remains available separately.
+- Manual, on-demand checks for the latest public stable release, with SemVer
+  comparison, localized progress/results, duplicate-click prevention, retryable
+  failures, and a browser-only action for newer releases. No automatic checks,
+  downloads, installation, credentials, or telemetry.
+- Named local extension profiles with explicit application, creation from selection,
+  rename, duplicate, and confirmed deletion. Application replaces the complete
+  selection, ignores absent groups, and supports files without extensions.
+- Per-source folder exclusions with lazy directory browsing, cancellable search,
+  subtree checkboxes, an excluded-only tree view, reset, and automatic rescan on change.
+- Versioned local profile and exclusion storage with temporary-sibling writes, source
+  keys derived with SHA-256, and preservation of corrupt or unsupported data.
+- Complete six-language labels, validation, accessibility names, and themed dialogs.
+- Empty named profiles, removable extension chips, custom extension-key editing, and
+  versioned portable JSON import/export with explicit feedback for skipped existing names.
+
+### Changed
+
+- Profile name dialogs size naturally to their content; the profile picker and Deselect
+  action form a closer pair. Profile management shows extension counts in a matching
+  pane footer and uses integrated removal sections on extension chips.
+- Deselect all clears the folder-exclusion draft without saving until Apply; Reset
+  still restores the rules present when the dialog opened.
+- Compact New/Rename/Duplicate name dialogs omit redundant extension previews.
+  Duplication proposes a valid localized name with collision numbering.
+- Folder exclusions use the tree and a search-compatible Show only excluded filter,
+  replacing the separate path list and removal panel while retaining missing-path
+  editing, whole-draft singular/plural counts, reset, and Apply/Cancel behavior.
+- Profile management uses a grouped icon footer, a wrapping/scrollable chip editor,
+  and separate empty-profile creation and duplication. Main Save profile retains
+  creation from the current selection.
+- Scanner prunes excluded directories before enumeration; archive manifests and totals
+  contain only included files.
+- Compact profile toolbar with immediate application on user selection, a Deselect X
+  that preserves saved profiles and extension selection, Save and management icons,
+  vertically aligned controls, a right-aligned filter, and status-bar feedback.
+- Package upgrade fixtures derive their version from central product metadata and
+  verify preservation of local profile and exclusion data.
 
 ## 1.0.0 - 2026-09-18
 

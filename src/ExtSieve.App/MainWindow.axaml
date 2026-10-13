@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:ExtSieve.App.ViewModels"
         xmlns:controls="using:ExtSieve.App.Controls"
-        xmlns:views="using:ExtSieve.App.Views"
+        xmlns:views="using:ExtSieve.App.Views" xmlns:models="using:ExtSieve.Core.Models"
         mc:Ignorable="d"
         d:DesignWidth="900" d:DesignHeight="700"
         x:Class="ExtSieve.App.MainWindow"
@@ -31,10 +31,6 @@
     </Style>
     <Style Selector="Border.segmentGroup">
       <Setter Property="Background" Value="{DynamicResource InputSurfaceBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="6" />
-      <Setter Property="ClipToBounds" Value="True" />
     </Style>
     <Style Selector="Border.statusBar">
       <Setter Property="Padding" Value="16,2" />
@@ -111,8 +107,6 @@
       <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
     </Style>
     <Style Selector="Button.sourceSegment">
-      <Setter Property="MinHeight" Value="42" />
-      <Setter Property="Padding" Value="13,7" />
       <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
       <Setter Property="Background" Value="{DynamicResource SecondaryControlBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -148,16 +142,12 @@
       <Setter Property="Background" Value="{DynamicResource SecondaryControlHoverBrush}" />
     </Style>
     <Style Selector="TextBox.pathBox">
-      <Setter Property="MinHeight" Value="42" />
-      <Setter Property="Padding" Value="12,7" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="CornerRadius" Value="0" />
     </Style>
     <Style Selector="RadioButton.segment">
-      <Setter Property="MinHeight" Value="38" />
-      <Setter Property="Padding" Value="15,7" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
@@ -194,6 +184,7 @@
     <Style Selector="Button:focus-visible, RadioButton:focus-visible, ComboBox:focus-visible, TextBox:focus-visible, CheckBox:focus-visible">
       <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
     </Style>
+    <StyleInclude Source="avares://ExtSieve.App/Themes/CompoundControls.axaml" />
   </Window.Styles>
 
   <Grid RowDefinitions="*,Auto">
@@ -202,33 +193,41 @@
       <TextBlock Grid.Row="0" VerticalAlignment="Center" FontSize="18" FontWeight="Medium"
                  Text="{Binding AppPurpose}" TextWrapping="Wrap" />
 
-      <Border Grid.Row="1" Classes="segmentGroup">
-        <Grid ColumnDefinitions="*,Auto">
+      <controls:RoundedContentBorder x:Name="SourceRow" Grid.Row="1" Classes="segmentGroup">
+        <Grid ColumnDefinitions="*,Auto,Auto">
           <Grid ColumnDefinitions="*,Auto">
-            <TextBox Classes="pathBox" Text="{Binding SourcePath}"
+            <TextBox x:Name="SourcePathTextBox" Classes="pathBox" Text="{Binding SourcePath}"
                      PlaceholderText="{Binding SourcePlaceholder}" IsReadOnly="True"
                      ToolTip.Tip="{Binding SourcePath}"
                      AutomationProperties.Name="{Binding SourceLabel}" />
-            <Button Grid.Column="1" Classes="iconButton" Width="42" MinHeight="42"
+            <Button x:Name="RefreshSourceButton" Grid.Column="1" Classes="iconButton sourceRefresh"
                     BorderThickness="1,0,0,0" CornerRadius="0"
                     IsVisible="{Binding HasSource}" Command="{Binding ScanAgainCommand}"
                     ToolTip.Tip="{Binding ScanAgainLabel}"
                     AutomationProperties.Name="{Binding ScanAgainLabel}">
-              <controls:TablerIcon Width="19" Height="19" Data="{StaticResource TablerRefresh}" />
+              <controls:TablerIcon Data="{StaticResource TablerRefresh}" />
             </Button>
           </Grid>
-          <Button x:Name="ChooseFolderButton" Grid.Column="1" Classes="sourceSegment"
+          <Button x:Name="ExclusionsButton" Grid.Column="1" Classes="sourceSegment" IsVisible="{Binding HasSource}"
+                  Command="{Binding EditExclusionsCommand}"
+                  ToolTip.Tip="{Binding ExclusionsHelp}" AutomationProperties.Name="{Binding ExclusionsHelp}">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <controls:TablerIcon VerticalAlignment="Center" Data="{StaticResource TablerFolderMinus}" />
+              <TextBlock VerticalAlignment="Center" Text="{Binding ExclusionsLabel}" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="ChooseFolderButton" Grid.Column="2" Classes="sourceSegment"
                   Command="{Binding ChooseFolderCommand}"
                   AutomationProperties.Name="{Binding ChooseFolderLabel}">
             <StackPanel Orientation="Horizontal" Spacing="7">
-              <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerFolder}" />
+              <controls:TablerIcon Data="{StaticResource TablerFolder}" />
               <TextBlock VerticalAlignment="Center" Text="{Binding ChooseFolderLabel}" />
             </StackPanel>
           </Button>
         </Grid>
-      </Border>
+      </controls:RoundedContentBorder>
 
-      <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="9">
+      <Grid Grid.Row="2" RowDefinitions="Auto,Auto,*" RowSpacing="9">
         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="9" IsVisible="{Binding HasScanSummary}">
           <Border Classes="summaryCard">
             <Grid ColumnDefinitions="34,*" ColumnSpacing="9">
@@ -253,7 +252,52 @@
           </Border>
         </Grid>
 
-        <Border Grid.RowSpan="2" Classes="card" IsVisible="{Binding ShowsEmptyState}">
+        <Grid x:Name="ProfileToolbar" Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10"
+              IsEnabled="{Binding CanUseProfiles}">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Grid Classes="compoundGroup" ColumnDefinitions="Auto,Auto">
+              <controls:CommandComboBox x:Name="ProfileSelector" Classes="compoundMain compoundLeft" Width="180"
+                        VerticalAlignment="Center" VerticalContentAlignment="Center" ItemsSource="{Binding Profiles.Profiles}"
+                        SelectedItem="{Binding Profiles.SelectedProfile, Mode=OneWay}" PlaceholderText="{Binding ProfileSelectorLabel}"
+                        SelectionCommittedCommand="{Binding SelectProfileCommand}"
+                        TextSearch.TextBinding="{Binding Name, DataType=models:ExtensionProfile}"
+                        ToolTip.Tip="{Binding ProfilesHelp}" AutomationProperties.Name="{Binding ProfileSelectorLabel}">
+                <ComboBox.ItemTemplate><DataTemplate x:DataType="models:ExtensionProfile">
+                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                </DataTemplate></ComboBox.ItemTemplate>
+              </controls:CommandComboBox>
+              <Button x:Name="ClearProfileButton" Grid.Column="1" Classes="secondary compoundClear"
+                      Command="{Binding ClearProfileCommand}" ToolTip.Tip="{Binding ClearProfileLabel}"
+                      AutomationProperties.Name="{Binding ClearProfileLabel}">
+                <controls:TablerIcon Data="{StaticResource TablerX}" />
+              </Button>
+            </Grid>
+            <Button x:Name="SaveProfileButton" Classes="secondary compactAction"
+                    Command="{Binding SaveProfileCommand}" ToolTip.Tip="{Binding SaveProfileLabel}"
+                    AutomationProperties.Name="{Binding SaveProfileLabel}">
+              <controls:TablerIcon Data="{StaticResource TablerDeviceFloppy}" />
+            </Button>
+            <Button x:Name="ManageProfilesButton" Classes="secondary compactAction" Command="{Binding ManageProfilesCommand}"
+                    ToolTip.Tip="{Binding ManageProfilesLabel}" AutomationProperties.Name="{Binding ManageProfilesLabel}">
+              <controls:TablerIcon Data="{StaticResource TablerStack}" />
+            </Button>
+          </StackPanel>
+          <Grid x:Name="FilterContainer" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center"
+                Classes="compoundGroup" ColumnDefinitions="*,Auto" Width="220" Height="{DynamicResource ExtSieveControlHeight}">
+            <TextBox x:Name="FilterTextBox" Classes="compoundMain" Classes.compoundLeft="{Binding IsFilterClearVisible}"
+                     Text="{Binding FilterText}" PlaceholderText="{Binding FilterPlaceholder}"
+                     AutomationProperties.Name="{Binding FilterPlaceholder}" />
+            <Button x:Name="ClearFilterButton" Grid.Column="1" Classes="secondary compoundClear"
+                    IsVisible="{Binding IsFilterClearVisible}"
+                    Command="{Binding ClearFilterCommand}" Click="OnClearFilterClick"
+                    ToolTip.Tip="{Binding ClearFilterLabel}"
+                    AutomationProperties.Name="{Binding ClearFilterLabel}">
+              <controls:TablerIcon Data="{StaticResource TablerX}" />
+            </Button>
+          </Grid>
+        </Grid>
+
+        <Border Grid.Row="2" Classes="card" IsVisible="{Binding ShowsEmptyState}">
           <StackPanel MaxWidth="500" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
             <Border Width="60" Height="60" CornerRadius="30" HorizontalAlignment="Center" Background="{DynamicResource AccentSubtleBrush}">
               <controls:TablerIcon Width="30" Height="30" Foreground="{DynamicResource AccentBrush}" Data="{StaticResource TablerFolder}" />
@@ -262,33 +306,16 @@
             <TextBlock Classes="secondary" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding EmptyStateDescription}" />
             <Button Classes="primary" Margin="0,6,0,0" HorizontalAlignment="Center" Command="{Binding ChooseFolderCommand}" AutomationProperties.Name="{Binding ChooseFolderLabel}">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <controls:TablerIcon Width="18" Height="18" Foreground="{DynamicResource AccentTextBrush}" Data="{StaticResource TablerFolder}" />
+                <controls:TablerIcon Width="{DynamicResource ExtSieveActionIconSize}" Height="{DynamicResource ExtSieveActionIconSize}" Foreground="{DynamicResource AccentTextBrush}" Data="{StaticResource TablerFolder}" />
                 <TextBlock VerticalAlignment="Center" Text="{Binding ChooseFolderLabel}" />
               </StackPanel>
             </Button>
           </StackPanel>
         </Border>
 
-        <Border Grid.Row="1" Classes="card" Padding="0" IsVisible="{Binding HasResults}">
-          <Grid RowDefinitions="Auto,Auto,*">
-            <Grid Margin="8,7" ColumnDefinitions="*,280">
-              <Border Grid.Column="1" Classes="segmentGroup" MinHeight="36">
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBox x:Name="FilterTextBox" MinHeight="36" Padding="10,5,38,5"
-                           VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0"
-                           Text="{Binding FilterText}" PlaceholderText="{Binding FilterPlaceholder}"
-                           AutomationProperties.Name="{Binding FilterPlaceholder}" />
-                  <Button Grid.Column="1" Classes="iconButton" Width="32" Margin="0,2,2,2"
-                          IsVisible="{Binding IsFilterClearVisible}"
-                          Command="{Binding ClearFilterCommand}" Click="OnClearFilterClick"
-                          ToolTip.Tip="{Binding ClearFilterLabel}"
-                          AutomationProperties.Name="{Binding ClearFilterLabel}">
-                    <controls:TablerIcon Width="16" Height="16" Data="{StaticResource TablerX}" />
-                  </Button>
-                </Grid>
-              </Border>
-            </Grid>
-            <Border Grid.Row="1" Background="{DynamicResource ElevatedSurfaceBrush}" BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="0,1">
+        <controls:RoundedContentBorder Grid.Row="2" Classes="card" Padding="0" IsVisible="{Binding HasResults}">
+          <Grid RowDefinitions="Auto,*">
+            <Border Background="{DynamicResource ElevatedSurfaceBrush}" BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="0,1">
               <Grid ColumnDefinitions="46,*,122,140">
                 <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsThreeState="True"
                           IsChecked="{Binding AllGroupsSelectionState, Mode=OneWay}" Command="{Binding ToggleAllSelectionCommand}"
@@ -316,7 +343,7 @@
                 </Button>
               </Grid>
             </Border>
-            <ListBox Grid.Row="2" ItemsSource="{Binding Groups.VisibleRows}" Background="Transparent" BorderThickness="0" SelectionMode="Multiple">
+            <ListBox Grid.Row="1" ItemsSource="{Binding Groups.VisibleRows}" Background="Transparent" BorderThickness="0" SelectionMode="Multiple">
               <ListBox.Styles>
                 <Style x:DataType="vm:ExtensionGroupRowViewModel" Selector="ListBoxItem">
                   <Setter Property="Padding" Value="0" /><Setter Property="MinHeight" Value="37" />
@@ -343,19 +370,19 @@
               </ListBox.ItemTemplate>
             </ListBox>
           </Grid>
-        </Border>
+        </controls:RoundedContentBorder>
       </Grid>
 
       <Border Grid.Row="3" Classes="card" IsVisible="{Binding HasResults}" IsEnabled="{Binding CanEditArchiveOptions}">
         <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="110,*" ColumnSpacing="12" RowSpacing="9">
           <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{Binding ArchiveLayoutLabel}" />
-          <Border x:Name="ArchiveModeGroup" Grid.Column="1" Classes="segmentGroup" HorizontalAlignment="Left">
+          <controls:RoundedContentBorder x:Name="ArchiveModeGroup" Grid.Column="1" Classes="segmentGroup" HorizontalAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="0">
               <RadioButton x:Name="PreserveStructureRadioButton" Classes="segment" GroupName="ArchiveMode" BorderThickness="0" CornerRadius="0"
                            IsChecked="{Binding PreserveStructure, Mode=TwoWay}" IsTabStop="{Binding PreserveStructure}"
                            AutomationProperties.Name="{Binding PreserveStructureLabel}">
                 <StackPanel Orientation="Horizontal" Spacing="7">
-                  <controls:TablerIcon Width="17" Height="17" Data="{StaticResource TablerFolder}" />
+                  <controls:TablerIcon Data="{StaticResource TablerFolder}" />
                   <TextBlock VerticalAlignment="Center" Text="{Binding PreserveStructureLabel}" />
                 </StackPanel>
               </RadioButton>
@@ -364,24 +391,24 @@
                            IsChecked="{Binding Flatten, Mode=TwoWay}" IsTabStop="{Binding Flatten}"
                            AutomationProperties.Name="{Binding FlattenLabel}">
                 <StackPanel Orientation="Horizontal" Spacing="7">
-                  <controls:TablerIcon Width="17" Height="17" Data="{StaticResource TablerFiles}" />
+                  <controls:TablerIcon Data="{StaticResource TablerFiles}" />
                   <TextBlock VerticalAlignment="Center" Text="{Binding FlattenLabel}" />
                 </StackPanel>
               </RadioButton>
             </StackPanel>
-          </Border>
+          </controls:RoundedContentBorder>
           <TextBlock Grid.Row="1" FontWeight="SemiBold" VerticalAlignment="Center" Text="{Binding OutputLabel}" />
-          <Border Grid.Row="1" Grid.Column="1" Classes="segmentGroup">
+          <controls:RoundedContentBorder Grid.Row="1" Grid.Column="1" Classes="segmentGroup">
             <Grid ColumnDefinitions="*,Auto">
               <TextBox Classes="pathBox" Text="{Binding OutputPath}" IsReadOnly="True" ToolTip.Tip="{Binding OutputPath}" AutomationProperties.Name="{Binding OutputLabel}" />
               <Button Grid.Column="1" Classes="sourceSegment" MinWidth="98" Command="{Binding BrowseOutputCommand}" AutomationProperties.Name="{Binding BrowseLabel}">
                 <StackPanel Orientation="Horizontal" Spacing="7">
-                  <controls:TablerIcon Width="18" Height="18" Data="{StaticResource TablerFolder}" />
+                  <controls:TablerIcon Data="{StaticResource TablerFolder}" />
                   <TextBlock VerticalAlignment="Center" Text="{Binding BrowseLabel}" />
                 </StackPanel>
               </Button>
             </Grid>
-          </Border>
+          </controls:RoundedContentBorder>
           <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
             <TextBlock Classes="secondary" Margin="0,8,10,0" VerticalAlignment="Center" Text="{Binding SelectionSummary}" TextWrapping="Wrap" />
             <Button Grid.Column="1" Classes="secondary" Margin="0,4,0,0" IsVisible="{Binding IsSuccess}"
@@ -410,6 +437,7 @@
         <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="2">
           <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
           <TextBlock IsVisible="{Binding HasWarnings}" Foreground="{DynamicResource WarningBrush}" Text="{Binding WarningSummary}" TextWrapping="Wrap" />
+          <TextBlock IsVisible="{Binding HasFeatureWarning}" Foreground="{DynamicResource WarningBrush}" Text="{Binding FeatureWarning}" TextWrapping="Wrap" />
           <TextBlock IsVisible="{Binding HasSettingsWarning}" Foreground="{DynamicResource WarningBrush}" Text="{Binding SettingsWarning}" TextWrapping="Wrap" />
         </StackPanel>
         <Button Grid.Row="1" Grid.Column="1" Classes="secondary" MinHeight="28" Padding="9,3" IsVisible="{Binding IsBusy}"

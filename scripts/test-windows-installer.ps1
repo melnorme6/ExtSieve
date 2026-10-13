@@ -34,7 +34,7 @@ function Resolve-InnoCompiler {
 function Invoke-Executable {
     param([string] $Path, [string[]] $Arguments)
 
-    $process = Start-Process -FilePath $Path -ArgumentList $Arguments -Wait -PassThru
+    $process = Start-Process -FilePath $Path -ArgumentList $Arguments -WindowStyle Hidden -Wait -PassThru
     if ($process.ExitCode -ne 0) {
         throw "$([IO.Path]::GetFileName($Path)) failed with exit code $($process.ExitCode)."
     }
@@ -57,7 +57,7 @@ function Assert-InstalledVersion {
     if (-not (Test-Path -LiteralPath $ExecutablePath -PathType Leaf)) {
         throw "Installed executable is missing: $ExecutablePath"
     }
-    $version = (Get-Item -LiteralPath $ExecutablePath).VersionInfo.ProductVersion
+    $version = (Get-Item -LiteralPath $ExecutablePath).VersionInfo.ProductVersion.Split('+')[0]
     if ($version -ne $ExpectedVersion) {
         throw "Installed product version is $version; expected $ExpectedVersion."
     }
@@ -95,11 +95,15 @@ using ExtSieve.Core.Services;
 var scratch = Path.GetFullPath(args[0]);
 var source = Path.Combine(scratch, "archive-source");
 var nested = Path.Combine(source, "nested");
+var excluded = Path.Combine(source, "ignored", "deep");
 var destination = Path.Combine(scratch, "installed-smoke.zip");
 Directory.CreateDirectory(nested);
+Directory.CreateDirectory(excluded);
 File.WriteAllText(Path.Combine(source, "root.txt"), "root");
 File.WriteAllBytes(Path.Combine(nested, "payload.bin"), [0, 1, 2, 3]);
-var scan = await new FolderScanner().ScanAsync(source, null, CancellationToken.None);
+File.WriteAllText(Path.Combine(excluded, "excluded.txt"), "excluded");
+var scan = await new FolderScanner().ScanAsync(
+    source, null, CancellationToken.None, new FolderExclusionSet(["ignored"]));
 if (scan.Files.Count != 2) throw new InvalidOperationException("Scan count mismatch.");
 var selected = scan.Files.Select(file => file.ExtensionKey)
     .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -133,12 +137,12 @@ $productDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 [xml] $properties = Get-Content -LiteralPath (
     Join-Path $productDirectory 'Directory.Build.props') -Raw
 $version = [string] $properties.Project.PropertyGroup.Version
-if ($version -ne '1.0.0') {
-    throw "This lifecycle gate expects the approved 1.0.0 candidate; observed $version."
+if ($version -notmatch '^\d+\.\d+\.\d+$') {
+    throw "This lifecycle gate requires a stable semantic version; observed $version."
 }
 
 if ([string]::IsNullOrWhiteSpace($InstallerPath)) {
-    $InstallerPath = Join-Path $productDirectory "artifacts\ExtSieve-Setup-$version-win-x64.exe"
+    $InstallerPath = Join-Path $productDirectory "artifacts\releases\$version\candidate\ExtSieve-Setup-$version-win-x64.exe"
 }
 $InstallerPath = [IO.Path]::GetFullPath($InstallerPath)
 if (-not (Test-Path -LiteralPath $InstallerPath -PathType Leaf)) {
@@ -162,6 +166,19 @@ $ownerSettingsExisted = Test-Path -LiteralPath $settingsPath -PathType Leaf
 } else {
     [byte[]]::new(0)
 }
+$localDataFixtures = @(
+    @{ Name = 'profiles.json'; Content = '{"SchemaVersion":1,"Profiles":[{"Name":"Documents","ExtensionKeys":[".txt"]}]}' },
+    @{ Name = 'exclusions.json'; Content = '{"SchemaVersion":1,"Roots":{}}' }
+) | ForEach-Object {
+    $dataPath = Join-Path $settingsDirectory $_.Name
+    $existed = Test-Path -LiteralPath $dataPath -PathType Leaf
+    @{
+        Path = $dataPath
+        Existed = $existed
+        Bytes = if ($existed) { [IO.File]::ReadAllBytes($dataPath) }
+            else { [Text.UTF8Encoding]::new($false).GetBytes($_.Content) }
+    }
+}
 $launchedProcess = $null
 
 if (@(Get-ExtSieveUninstallEntries).Count -ne 0 -or
@@ -177,6 +194,9 @@ try {
     $testSettings = [Text.UTF8Encoding]::new($false).GetBytes(
         "{`n  `"Language`": `"Italian`",`n  `"Theme`": `"Dark`"`n}`n")
     [IO.File]::WriteAllBytes($settingsPath, $testSettings)
+    foreach ($fixture in $localDataFixtures) {
+        if (-not $fixture.Existed) { [IO.File]::WriteAllBytes($fixture.Path, $fixture.Bytes) }
+    }
 
     Invoke-Executable $InstallerPath @(
         '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOCLOSEAPPLICATIONS')
@@ -192,7 +212,7 @@ try {
     }
 
     Invoke-InstalledArchiveSmoke $installDirectory $temporaryDirectory
-    $launchedProcess = Start-Process -FilePath $installedExecutable -PassThru
+    $launchedProcess = Start-Process -FilePath $installedExecutable -WindowStyle Hidden -PassThru
     Start-Sleep -Seconds 2
     if ($launchedProcess.HasExited) {
         throw 'The installed application did not remain running after launch.'
@@ -210,7 +230,8 @@ try {
         throw 'Selecting the optional Desktop shortcut task did not create the shortcut.'
     }
 
-    $upgradeVersion = '1.0.1'
+    $numericVersion = [Version] $version
+    $upgradeVersion = '{0}.{1}.{2}' -f $numericVersion.Major, $numericVersion.Minor, ($numericVersion.Build + 1)
     $upgradePayload = Join-Path $temporaryDirectory 'upgrade-payload'
     New-Item -ItemType Directory -Path $upgradePayload | Out-Null
     Copy-Item -Path (Join-Path $installDirectory '*') -Destination $upgradePayload -Recurse -Force
@@ -222,7 +243,7 @@ try {
         '--self-contained', 'true',
         '--no-restore',
         '--output', $upgradePayload,
-        '-p:Version=1.0.1',
+        "-p:Version=$upgradeVersion",
         '-p:PublishSingleFile=false',
         '-p:PublishTrimmed=false',
         '-p:PublishAot=false',
@@ -231,7 +252,7 @@ try {
     )
     & dotnet @publishArguments
     if ($LASTEXITCODE -ne 0) {
-        throw 'The controlled 1.0.1 application fixture could not be published.'
+        throw 'The controlled upgrade application fixture could not be published.'
     }
     $upgradeInstaller = Join-Path $temporaryDirectory "ExtSieve-Setup-$upgradeVersion-win-x64.exe"
     [string[]] $innoArguments = @(
@@ -247,7 +268,7 @@ try {
         throw 'The controlled upgrade installer fixture could not be compiled.'
     }
 
-    $launchedProcess = Start-Process -FilePath $installedExecutable -PassThru
+    $launchedProcess = Start-Process -FilePath $installedExecutable -WindowStyle Hidden -PassThru
     Start-Sleep -Seconds 2
     Invoke-Executable $upgradeInstaller @(
         '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART',
@@ -266,11 +287,11 @@ try {
         throw 'Upgrade changed the user settings file.'
     }
 
-    $launchedProcess = Start-Process -FilePath $installedExecutable -PassThru
+    $launchedProcess = Start-Process -FilePath $installedExecutable -WindowStyle Hidden -PassThru
     Start-Sleep -Seconds 2
     $uninstaller = Join-Path $installDirectory 'unins000.exe'
     $blockedUninstall = Start-Process -FilePath $uninstaller -ArgumentList @(
-        '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+        '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -WindowStyle Hidden -Wait -PassThru
     $launchedProcess.Refresh()
     if ($launchedProcess.HasExited -or
         -not (Test-Path -LiteralPath $installedExecutable -PathType Leaf) -or
@@ -311,8 +332,14 @@ try {
     if (Test-Path -LiteralPath $installDirectory) {
         throw 'The reinstall/uninstall cycle left installer-owned files.'
     }
+    foreach ($fixture in $localDataFixtures) {
+        if ([Convert]::ToBase64String([IO.File]::ReadAllBytes($fixture.Path)) -ne
+            [Convert]::ToBase64String($fixture.Bytes)) {
+            throw 'Install, upgrade or removal changed local profile/exclusion data.'
+        }
+    }
 
-Write-Host 'Windows installer lifecycle passed: install, launch, archive, optional shortcut, upgrade, in-use blocking, uninstall, settings preservation, and reinstall.'
+    Write-Host 'Windows installer lifecycle passed: install, launch, archive exclusions, optional shortcut, upgrade, in-use blocking, uninstall, local data preservation, and reinstall.'
 }
 finally {
     if ($null -ne $launchedProcess -and -not $launchedProcess.HasExited) {
@@ -321,7 +348,7 @@ finally {
     $cleanupUninstaller = Join-Path $installDirectory 'unins000.exe'
     if (Test-Path -LiteralPath $cleanupUninstaller -PathType Leaf) {
         Start-Process -FilePath $cleanupUninstaller -ArgumentList @(
-            '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait | Out-Null
+            '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -WindowStyle Hidden -Wait | Out-Null
     }
     if ($ownerSettingsExisted) {
         New-Item -ItemType Directory -Path $settingsDirectory -Force | Out-Null
@@ -330,7 +357,17 @@ finally {
     elseif (Test-Path -LiteralPath $settingsPath) {
         Remove-Item -LiteralPath $settingsPath -Force
     }
+    foreach ($fixture in $localDataFixtures) {
+        if (-not $fixture.Existed -and (Test-Path -LiteralPath $fixture.Path)) {
+            Remove-Item -LiteralPath $fixture.Path -Force
+        }
+    }
     if (Test-Path -LiteralPath $temporaryDirectory) {
+        $resolvedTemporaryDirectory = [IO.Path]::GetFullPath($temporaryDirectory)
+        $expectedTemporaryPrefix = Join-Path ([IO.Path]::GetTempPath()) 'extsieve-installer-lifecycle-'
+        if (-not $resolvedTemporaryDirectory.StartsWith($expectedTemporaryPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Refusing cleanup outside the installer lifecycle temporary directory.'
+        }
         Remove-Item -LiteralPath $temporaryDirectory -Recurse -Force
     }
 }

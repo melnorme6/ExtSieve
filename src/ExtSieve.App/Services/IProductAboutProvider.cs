@@ -6,6 +6,10 @@ public interface IProductAboutProvider
 
     string? BuildInfo { get; }
 
+    string? PublicSourceRevision { get; }
+
+    Uri? CommitPageUri { get; }
+
     string? LicenseName { get; }
 
     string? LicenseDocumentPath { get; }

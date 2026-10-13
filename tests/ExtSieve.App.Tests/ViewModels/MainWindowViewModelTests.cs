@@ -15,8 +15,8 @@ public sealed class MainWindowViewModelTests
 
         Assert.Equal("ExtSieve", fixture.ViewModel.ProductName);
         Assert.Equal("1.0.0-rc.1", fixture.ViewModel.ProductVersion);
-        Assert.Equal("-", fixture.ViewModel.ProductBuildInfo);
-        Assert.Equal("-", fixture.ViewModel.UpdateStatus);
+        Assert.Equal("Development build", fixture.ViewModel.ProductBuildInfo);
+        Assert.Empty(fixture.ViewModel.UpdateStatus);
         Assert.Equal("MIT License", fixture.ViewModel.ProductLicense);
         Assert.Equal("-", fixture.ViewModel.ReleasePage);
         Assert.Equal("-", fixture.ViewModel.SupportProject);
@@ -47,7 +47,7 @@ public sealed class MainWindowViewModelTests
             [fixture.ProductAbout.ReleasePageUri, fixture.ProductAbout.SupportPageUri],
             fixture.ExternalResources.OpenedUris);
         Assert.Equal(
-            fixture.ProductAbout.ReleasePageUri.AbsoluteUri,
+            fixture.Localization["OpenReleasePage"],
             fixture.ViewModel.ReleasePage);
         Assert.Equal("Donate on Ko-fi", fixture.ViewModel.SupportProject);
         Assert.DoesNotContain(fixture.RootPath, fixture.ViewModel.ThirdPartyNotices,

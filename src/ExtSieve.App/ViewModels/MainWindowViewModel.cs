@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using ExtSieve.App.LocalData;
 using ExtSieve.App.Localization;
 using ExtSieve.App.Services;
 using ExtSieve.App.Settings;
@@ -34,6 +35,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IProductVersionProvider _productVersionProvider;
     private readonly IProductAboutProvider _productAboutProvider;
     private readonly IExternalResourceService _externalResourceService;
+    private readonly IUpdateChecker _updateChecker;
+    private CancellationTokenSource? _updateCancellation;
+    private UpdateCheckResult? _updateResult;
+    private bool _isCheckingUpdates;
+    private bool _isDisposed;
+    private readonly IExclusionStore _exclusionStore;
+    private readonly IFeatureDialogService _featureDialogs;
+    private readonly IFolderBrowser _folderBrowser;
+    private FolderExclusionSet _exclusions = new([]);
+    private string? _exclusionWarningKey;
+    private string? _appliedProfileName;
+    private bool _profileHasMissingKeys;
     private readonly SemaphoreSlim _settingsSaveLock = new(1, 1);
     private CancellationTokenSource? _operationCancellation;
     private ScanResult? _scanResult;
@@ -69,7 +82,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IThemeService themeService,
         IProductVersionProvider productVersionProvider,
         IProductAboutProvider productAboutProvider,
-        IExternalResourceService externalResourceService)
+        IExternalResourceService externalResourceService,
+        IProfileStore profileStore,
+        IExclusionStore exclusionStore,
+        IFeatureDialogService featureDialogs,
+        IFolderBrowser folderBrowser,
+        IUpdateChecker updateChecker)
     {
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _folderScanner = folderScanner ?? throw new ArgumentNullException(nameof(folderScanner));
@@ -82,8 +100,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         _productVersionProvider = productVersionProvider ?? throw new ArgumentNullException(nameof(productVersionProvider));
         _productAboutProvider = productAboutProvider ?? throw new ArgumentNullException(nameof(productAboutProvider));
         _externalResourceService = externalResourceService ?? throw new ArgumentNullException(nameof(externalResourceService));
+        _updateChecker = updateChecker ?? throw new ArgumentNullException(nameof(updateChecker));
+        _exclusionStore = exclusionStore;
+        _featureDialogs = featureDialogs;
+        _folderBrowser = folderBrowser;
 
         Groups = new ExtensionGroupListViewModel(_localization);
+        Profiles = new ProfileManagerViewModel(_localization, profileStore, featureDialogs,
+            () => Groups.AllRows.Where(row => row.IsSelected).Select(row => row.ExtensionKey).ToArray());
+        Profiles.PropertyChanged += OnProfilesPropertyChanged;
         Groups.PropertyChanged += OnGroupsPropertyChanged;
         _localization.CultureChanged += OnCultureChanged;
 
@@ -99,6 +124,13 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             Groups.ToggleAllSelection,
             () => HasResults && !IsBusy);
         ClearFilterCommand = new RelayCommand(ClearFilter, () => IsFilterClearVisible);
+        SelectProfileCommand = new RelayCommand<ExtensionProfile>(SelectProfile,
+            profile => CanChangeSource() && Profiles.Profiles.Contains(profile));
+        ClearProfileCommand = new RelayCommand(ClearSelectedProfile,
+            () => CanChangeSource() && Profiles.SelectedProfile is not null);
+        SaveProfileCommand = new AsyncCommand(SaveProfileAsync, () => CanChangeSource() && Profiles.CanWrite && Groups.SelectedGroupCount > 0);
+        ManageProfilesCommand = new AsyncCommand(ManageProfilesAsync, CanChangeSource);
+        EditExclusionsCommand = new AsyncCommand(EditExclusionsAsync, () => CanChangeSource() && HasSource);
         OpenSettingsCommand = new RelayCommand(OpenSettings, () => !IsBusy && !IsSettingsViewOpen);
         CloseSettingsCommand = new RelayCommand(CloseSettings, () => IsSettingsViewOpen);
         OpenLicenseCommand = new AsyncCommand(
@@ -107,6 +139,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OpenReleasePageCommand = new AsyncCommand(
             OpenReleasePageAsync,
             () => _productAboutProvider.ReleasePageUri is not null);
+        OpenPublicCommitCommand = new AsyncCommand(OpenPublicCommitAsync, () => HasPublicCommit);
+        CheckForUpdatesCommand = new AsyncCommand(CheckForUpdatesAsync, () => !_isDisposed && !_isCheckingUpdates);
+        OpenDetectedReleaseCommand = new AsyncCommand(OpenDetectedReleaseAsync, () => !_isDisposed && HasNewRelease);
         OpenSupportPageCommand = new AsyncCommand(
             OpenSupportPageAsync,
             () => _productAboutProvider.SupportPageUri is not null);
@@ -127,6 +162,26 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     public ExtensionGroupListViewModel Groups { get; }
+    public ProfileManagerViewModel Profiles { get; }
+    public RelayCommand<ExtensionProfile> SelectProfileCommand { get; }
+    public RelayCommand ClearProfileCommand { get; }
+    public AsyncCommand SaveProfileCommand { get; }
+    public AsyncCommand ManageProfilesCommand { get; }
+    public AsyncCommand EditExclusionsCommand { get; }
+    public string ProfileSelectorLabel => _localization["ExtensionProfiles"];
+    public string ClearProfileLabel => _localization["DeselectProfile"];
+    public string SaveProfileLabel => _localization["SaveProfile"];
+    public string ManageProfilesLabel => _localization["ManageProfiles"];
+    public string ProfilesHelp => _localization["ProfilesApplyHelp"];
+    public string ExclusionsLabel => _exclusions.Paths.Count == 0 ? _localization["Exclusions"] : Format("ExclusionsButtonFormat", _exclusions.Paths.Count);
+    public string ExclusionsHelp => _localization["FolderExclusions"];
+    public string ExcludedFoldersDisplay => Format(_exclusions.Paths.Count == 1
+        ? "ExcludedFolderSingularFormat" : "ExcludedFolderPluralFormat", _exclusions.Paths.Count);
+    public bool HasExclusions => _exclusions.Paths.Count > 0;
+    public bool CanUseProfiles => CanChangeSource();
+    public string FeatureWarning => string.Join(Environment.NewLine, new[] { Profiles.Warning,
+        _exclusionWarningKey is null ? string.Empty : _localization[_exclusionWarningKey] }.Where(value => value.Length > 0));
+    public bool HasFeatureWarning => Profiles.HasWarning || _exclusionWarningKey is not null;
     public AsyncCommand ChooseFolderCommand { get; }
     public AsyncCommand ScanAgainCommand { get; }
     public AsyncCommand BrowseOutputCommand { get; }
@@ -139,6 +194,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public RelayCommand CloseSettingsCommand { get; }
     public AsyncCommand OpenLicenseCommand { get; }
     public AsyncCommand OpenReleasePageCommand { get; }
+    public AsyncCommand OpenPublicCommitCommand { get; }
+    public AsyncCommand CheckForUpdatesCommand { get; }
+    public AsyncCommand OpenDetectedReleaseCommand { get; }
     public AsyncCommand OpenSupportPageCommand { get; }
     public AsyncCommand OpenThirdPartyNoticesCommand { get; }
     public RelayCommand SortByExtensionCommand { get; }
@@ -202,10 +260,23 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public string AboutThirdPartyNoticesLabel => _localization["AboutThirdPartyNotices"];
     public string ProductName => _productAboutProvider.ProductName;
     public string ProductVersion => _productVersionProvider.PublicVersion;
-    public string ProductBuildInfo => _productAboutProvider.BuildInfo ?? UnavailableValue;
-    public string UpdateStatus => UnavailableValue;
+    public string ProductBuildInfo => _productAboutProvider.BuildInfo ?? _localization["DevelopmentBuild"];
+    public bool HasPublicCommit => _productAboutProvider.CommitPageUri is not null;
+    public string OpenPublicCommitToolTip => _localization["OpenCommitOnGitHub"];
+    public bool ShowsCheckForUpdates => !_isCheckingUpdates && _updateResult is null;
+    public bool HasUpdateStatus => _isCheckingUpdates || _updateResult is not null;
+    public bool HasNewRelease => _updateResult?.Outcome == UpdateCheckOutcome.Available && !_isCheckingUpdates;
+    public string CheckForUpdatesLabel => _localization[_isCheckingUpdates ? "CheckingForUpdates" : "CheckForUpdates"];
+    public string OpenDetectedReleaseLabel => _localization["OpenDetectedRelease"];
+    public string UpdateStatus => _isCheckingUpdates ? _localization["CheckingForUpdates"] : _updateResult?.Outcome switch
+    {
+        UpdateCheckOutcome.UpToDate => _localization["AppUpToDate"],
+        UpdateCheckOutcome.Available => Format("UpdateAvailableFormat", _updateResult.Version!),
+        UpdateCheckOutcome.Failed => _localization["UpdateCheckFailed"],
+        _ => string.Empty,
+    };
     public string ProductLicense => _productAboutProvider.LicenseName ?? UnavailableValue;
-    public string ReleasePage => _productAboutProvider.ReleasePageUri?.AbsoluteUri ?? UnavailableValue;
+    public string ReleasePage => HasReleasePage ? _localization["OpenReleasePage"] : UnavailableValue;
     public string SupportProject => HasSupportPage
         ? _localization["DonateOnKofi"]
         : UnavailableValue;
@@ -246,25 +317,28 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         ? Format("WarningSummaryFormat", result.Warnings.Count)
         : string.Empty;
 
-    public string StatusText => IsSettingsViewOpen ? _localization["StatusSettings"] : _state switch
-    {
-        MainWindowState.NoSource => _localization["StatusNoSource"],
-        MainWindowState.Scanning => Format("StatusScanningFormat", _scanProgressFiles),
-        MainWindowState.EmptyResult => _localization["StatusEmptyResult"],
-        MainWindowState.Results => _localization["StatusResults"],
-        MainWindowState.ResultsWithWarnings => _localization["StatusResultsWithWarnings"],
-        MainWindowState.CreatingArchive => Format("StatusCreatingFormat", _archiveCompletedFiles, _archiveTotalFiles),
-        MainWindowState.Cancelled => _localization["StatusCancelled"],
-        MainWindowState.Success => _localization["StatusSuccess"],
-        MainWindowState.Error => _localization["StatusError"],
-        _ => string.Empty,
-    };
+    public string StatusText => IsSettingsViewOpen ? _localization["StatusSettings"]
+        : _appliedProfileName is not null ? Format(_profileHasMissingKeys ? "ProfileAppliedMissingFormat" : "ProfileAppliedFormat", _appliedProfileName)
+        : _state switch
+        {
+            MainWindowState.NoSource => _localization["StatusNoSource"],
+            MainWindowState.Scanning => Format("StatusScanningFormat", _scanProgressFiles),
+            MainWindowState.EmptyResult => _localization["StatusEmptyResult"],
+            MainWindowState.Results => _localization["StatusResults"],
+            MainWindowState.ResultsWithWarnings => _localization["StatusResultsWithWarnings"],
+            MainWindowState.CreatingArchive => Format("StatusCreatingFormat", _archiveCompletedFiles, _archiveTotalFiles),
+            MainWindowState.Cancelled => _localization["StatusCancelled"],
+            MainWindowState.Success => _localization["StatusSuccess"],
+            MainWindowState.Error => _localization["StatusError"],
+            _ => string.Empty,
+        };
 
     public string SelectionSummary => Format(
         "SelectionSummaryFormat",
         Groups.SelectedGroupCount,
         Groups.SelectedFileCount,
         ByteSizeFormatter.Format(Groups.SelectedBytes, _localization.CurrentCulture),
+        ExcludedFoldersDisplay,
         _plannedCollisionCount);
 
     public string SuccessSummary => _archiveResult is null
@@ -388,6 +462,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             _localization.SetLanguage(_settings.Language);
             _themeService.Apply(_settings.Theme);
             RebuildSettingOptions();
+            await Profiles.LoadAsync().ConfigureAwait(true);
         }
         finally
         {
@@ -421,8 +496,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         if (string.IsNullOrWhiteSpace(selectedPath)) return;
         try
         {
+            var changedRoot = !string.Equals(_sourcePath, Path.GetFullPath(selectedPath), PathComparison);
             SourcePath = Path.GetFullPath(selectedPath);
             OutputPath = SuggestDestination(SourcePath);
+            InvalidateScan();
+            _isDialogOpen = true;
+            UpdateCommandStates();
+            if (changedRoot)
+            {
+                var exclusions = await _exclusionStore.LoadAsync(SourcePath).ConfigureAwait(true);
+                _exclusions = exclusions.Value;
+                _exclusionWarningKey = exclusions.IsAvailable ? null : "ExclusionsLoadWarning";
+                RaiseFeatureStateChanged();
+            }
         }
         catch (Exception exception) when (exception is ArgumentException
             or IOException
@@ -431,11 +517,74 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             SetError(exception);
             return;
         }
+        finally
+        {
+            _isDialogOpen = false;
+            UpdateCommandStates();
+        }
 
         await ScanSourceAsync().ConfigureAwait(true);
     }
 
     public Task ScanAgainAsync() => CanChangeSource() && HasSource ? ScanSourceAsync() : Task.CompletedTask;
+
+    public void SelectProfile(ExtensionProfile profile)
+    {
+        if (!SelectProfileCommand.CanExecute(profile)) return;
+        Profiles.SelectedProfile = profile;
+        if (!HasResults) return;
+        Groups.ApplyProfile(profile);
+        _appliedProfileName = profile.Name;
+        _profileHasMissingKeys = profile.ExtensionKeys.Except(
+            Groups.AllRows.Select(row => row.ExtensionKey), StringComparer.OrdinalIgnoreCase).Any();
+        RaisePropertyChanged(nameof(StatusText));
+    }
+
+    public Task SaveProfileAsync() => RunFeatureDialogAsync(Profiles.SaveSelectionAsync);
+    public Task ManageProfilesAsync() => RunFeatureDialogAsync(() => _featureDialogs.ManageProfilesAsync(Profiles));
+
+    public void ClearSelectedProfile()
+    {
+        if (!ClearProfileCommand.CanExecute(null)) return;
+        Profiles.SelectedProfile = null;
+        ClearProfileStatus();
+    }
+
+    private async Task RunFeatureDialogAsync(Func<Task> action)
+    {
+        if (!CanChangeSource()) return;
+        _isDialogOpen = true;
+        UpdateCommandStates();
+        try { await action().ConfigureAwait(true); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException) { SetError(exception); }
+        finally { _isDialogOpen = false; UpdateCommandStates(); }
+    }
+
+    public async Task EditExclusionsAsync()
+    {
+        if (!CanChangeSource() || !HasSource) return;
+        var applied = false;
+        await RunFeatureDialogAsync(async () =>
+        {
+            using var editor = new FolderExclusionsViewModel(_localization, _sourcePath, _exclusions, _folderBrowser);
+            await editor.InitializeAsync().ConfigureAwait(true);
+            if (!await _featureDialogs.EditExclusionsAsync(editor).ConfigureAwait(true)) return;
+            if (_exclusions.Paths.SequenceEqual(editor.Exclusions.Paths)) return;
+            _exclusions = editor.Exclusions;
+            // No stale manifest can remain usable while the new configuration is saved.
+            InvalidateScan();
+            applied = true;
+            try
+            {
+                await _exclusionStore.SaveAsync(_sourcePath, _exclusions).ConfigureAwait(true);
+                _exclusionWarningKey = null;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            { _exclusionWarningKey = "ExclusionsSaveWarning"; }
+            RaiseFeatureStateChanged();
+        }).ConfigureAwait(true);
+        if (applied) await ScanSourceAsync().ConfigureAwait(true);
+    }
 
     public async Task BrowseOutputAsync()
     {
@@ -545,6 +694,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public void OpenSettings()
     {
         if (IsBusy || _isSettingsViewOpen) return;
+        if (_updateResult is not null)
+        {
+            _updateResult = null;
+            RaiseUpdateStateChanged();
+        }
         _isSettingsViewOpen = true;
         RaisePropertyChanged(nameof(IsSettingsViewOpen));
         RaisePropertyChanged(nameof(IsMainViewOpen));
@@ -567,6 +721,45 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public Task OpenReleasePageAsync() => OpenExternalUriAsync(
         _productAboutProvider.ReleasePageUri);
+
+    public Task OpenPublicCommitAsync() => OpenExternalUriAsync(
+        _productAboutProvider.CommitPageUri);
+
+    public Task OpenDetectedReleaseAsync() => OpenExternalUriAsync(HasNewRelease ? _updateResult?.ReleaseUri : null);
+
+    public async Task CheckForUpdatesAsync()
+    {
+        if (_isDisposed || _isCheckingUpdates) return;
+        using var cancellation = new CancellationTokenSource();
+        _updateCancellation = cancellation;
+        _isCheckingUpdates = true;
+        _updateResult = null;
+        RaiseUpdateStateChanged();
+        try
+        {
+            var result = await _updateChecker.CheckAsync(ProductVersion, cancellation.Token).ConfigureAwait(true);
+            if (!_isDisposed) _updateResult = result;
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        finally
+        {
+            _updateCancellation = null;
+            _isCheckingUpdates = false;
+            if (!_isDisposed) RaiseUpdateStateChanged();
+        }
+    }
+
+    private void RaiseUpdateStateChanged()
+    {
+        RaisePropertyChanged(nameof(CheckForUpdatesLabel));
+        RaisePropertyChanged(nameof(ShowsCheckForUpdates));
+        RaisePropertyChanged(nameof(UpdateStatus));
+        RaisePropertyChanged(nameof(UpdateStatusAccessibleName));
+        RaisePropertyChanged(nameof(HasUpdateStatus));
+        RaisePropertyChanged(nameof(HasNewRelease));
+        CheckForUpdatesCommand.RaiseCanExecuteChanged();
+        OpenDetectedReleaseCommand.RaiseCanExecuteChanged();
+    }
 
     public Task OpenSupportPageAsync() => OpenExternalUriAsync(
         _productAboutProvider.SupportPageUri);
@@ -591,10 +784,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _updateCancellation?.Cancel();
+        CheckForUpdatesCommand.RaiseCanExecuteChanged();
+        OpenDetectedReleaseCommand.RaiseCanExecuteChanged();
         _operationCancellation?.Cancel();
         _operationCancellation?.Dispose();
         Groups.PropertyChanged -= OnGroupsPropertyChanged;
         Groups.Dispose();
+        Profiles.PropertyChanged -= OnProfilesPropertyChanged;
+        Profiles.Dispose();
+        _exclusionStore.Dispose();
         _localization.CultureChanged -= OnCultureChanged;
     }
 
@@ -627,7 +828,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                     _scanProgressFiles = count;
                     RaisePropertyChanged(nameof(StatusText));
                 }),
-                cancellation.Token);
+                cancellation.Token,
+                _exclusions);
             if (!string.Equals(scannedSource, _sourcePath, PathComparison)) return;
             _scanResult = result;
             Groups.Load(result);
@@ -667,6 +869,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void InvalidateScan()
     {
+        ClearProfileStatus();
+        Profiles.SelectedProfile = null;
+        RaiseFeatureStateChanged();
         _scanResult = null;
         _archiveResult = null;
         _plannedCollisionCount = 0;
@@ -720,6 +925,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void SetState(MainWindowState state)
     {
+        _appliedProfileName = null;
         _state = state;
         RaisePropertyChanged(nameof(State));
         RaisePropertyChanged(nameof(StatusText));
@@ -767,6 +973,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         if (eventArgs.PropertyName == nameof(ExtensionGroupListViewModel.SelectedGroupCount))
         {
+            ClearProfileStatus();
             UpdatePlanPreview();
         }
         if (eventArgs.PropertyName == nameof(ExtensionGroupListViewModel.SelectionState))
@@ -893,6 +1100,36 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         SortByExtensionCommand.RaiseCanExecuteChanged();
         SortByFileCountCommand.RaiseCanExecuteChanged();
         SortBySizeCommand.RaiseCanExecuteChanged();
+        SelectProfileCommand.RaiseCanExecuteChanged();
+        ClearProfileCommand.RaiseCanExecuteChanged();
+        SaveProfileCommand.RaiseCanExecuteChanged();
+        ManageProfilesCommand.RaiseCanExecuteChanged();
+        EditExclusionsCommand.RaiseCanExecuteChanged();
+        Profiles.RefreshCommands();
+        RaisePropertyChanged(nameof(CanUseProfiles));
+    }
+
+    private void OnProfilesPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        RaiseFeatureStateChanged();
+        SelectProfileCommand.RaiseCanExecuteChanged();
+        ClearProfileCommand.RaiseCanExecuteChanged();
+        SaveProfileCommand.RaiseCanExecuteChanged();
+    }
+
+    private void RaiseFeatureStateChanged()
+    {
+        RaisePropertyChanged(nameof(ExclusionsLabel)); RaisePropertyChanged(nameof(ExcludedFoldersDisplay));
+        RaisePropertyChanged(nameof(SelectionSummary));
+        RaisePropertyChanged(nameof(HasExclusions)); RaisePropertyChanged(nameof(FeatureWarning));
+        RaisePropertyChanged(nameof(HasFeatureWarning));
+    }
+
+    private void ClearProfileStatus()
+    {
+        if (_appliedProfileName is null) return;
+        _appliedProfileName = null;
+        RaisePropertyChanged(nameof(StatusText));
     }
 
     private bool IsSort(ExtensionSortColumn column, SortDirection direction) =>

@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtSieve.App.ViewModels" xmlns:controls="using:ExtSieve.App.Controls"
+        x:Class="ExtSieve.App.Views.FolderExclusionsDialog" x:DataType="vm:FolderExclusionsViewModel"
+        Title="{Binding Title}" Width="640" Height="560" MinWidth="480" MinHeight="480"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}">
+  <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowSpacing="10">
+    <TextBlock Text="{Binding Help}" TextWrapping="Wrap" />
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+      <TextBox x:Name="SearchBox" Text="{Binding SearchText, Mode=TwoWay}" PlaceholderText="{Binding SearchPlaceholder}" AutomationProperties.Name="{Binding SearchPlaceholder}" />
+      <Button Grid.Column="1" Classes="secondary" Content="{Binding SearchLabel}" Command="{Binding SearchCommand}" />
+      <Button Grid.Column="2" Classes="secondary" Content="{Binding CancelLabel}" IsVisible="{Binding IsSearching}" Command="{Binding CancelSearchCommand}" />
+    </Grid>
+    <CheckBox x:Name="OnlyExcludedBox" Grid.Row="2" Content="{Binding ShowOnlyExcludedLabel}"
+              IsChecked="{Binding ShowOnlyExcluded, Mode=TwoWay}" IsEnabled="{Binding CanApply}"
+              AutomationProperties.Name="{Binding ShowOnlyExcludedLabel}" />
+    <TreeView x:Name="FoldersTree" Grid.Row="3" ItemsSource="{Binding VisibleNodes}" Background="{DynamicResource SurfaceBrush}"
+              IsEnabled="{Binding CanApply}" AutomationProperties.Name="{Binding Title}">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem" x:DataType="vm:FolderNodeViewModel">
+          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+        </Style>
+      </TreeView.Styles>
+      <TreeView.ItemTemplate>
+        <TreeDataTemplate x:DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
+          <StackPanel Orientation="Horizontal" Spacing="7" ToolTip.Tip="{Binding RelativePath}">
+            <CheckBox IsChecked="{Binding IsExcluded, Mode=TwoWay}" IsEnabled="{Binding CanToggle}" AutomationProperties.Name="{Binding RelativePath}" />
+            <controls:TablerIcon Data="{StaticResource TablerFolder}" VerticalAlignment="Center" Width="18" Height="18" />
+            <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+          </StackPanel>
+        </TreeDataTemplate>
+      </TreeView.ItemTemplate>
+    </TreeView>
+    <StackPanel Grid.Row="4" Spacing="4">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <TextBlock Text="{Binding CountLabel}" VerticalAlignment="Center" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+        <Button x:Name="DeselectAllButton" Grid.Column="1" Classes="secondary" Content="{Binding DeselectAllLabel}"
+                Command="{Binding DeselectAllCommand}" AutomationProperties.Name="{Binding DeselectAllLabel}" />
+      </Grid>
+      <TextBlock Text="{Binding Warning}" IsVisible="{Binding HasWarning}" TextWrapping="Wrap" Foreground="{DynamicResource WarningBrush}" />
+    </StackPanel>
+    <WrapPanel Grid.Row="5" HorizontalAlignment="Right">
+      <Button Margin="0,0,8,4" Classes="secondary" Content="{Binding ResetLabel}" Command="{Binding ResetCommand}" />
+      <Button Margin="0,0,8,4" Classes="secondary" Content="{Binding CancelLabel}" IsCancel="True" Click="OnCancel" />
+      <Button Margin="0,0,0,4" Classes="primary" Content="{Binding ApplyLabel}" IsEnabled="{Binding CanApply}" Click="OnApply" />
+    </WrapPanel>
+  </Grid>
+</Window>

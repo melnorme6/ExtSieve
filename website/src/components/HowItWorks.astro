@@ -1,0 +1,28 @@
+---
+import { en } from '../content/en';
+import { screenshotDetails } from '../lib/screenshot-config';
+import { publicAsset } from '../lib/paths';
+import Icon from './Icon.astro';
+---
+
+<section id="how-it-works" class="section container" aria-labelledby="steps-title">
+  <h2 id="steps-title" class="section-title-with-description">{en.howItWorks.title}</h2>
+  <p class="section-description">{en.howItWorks.description}</p>
+  <ol class="steps">
+    {en.howItWorks.steps.map(({ number, title, description }, index) => {
+      const detail = screenshotDetails[index];
+      if (!detail) throw new Error('Every step needs an authentic screenshot detail.');
+      const src = publicAsset(`screenshots/details/${detail.id}.png`);
+      const frameSets = 'mobileFrames' in detail ? [{ frames: detail.frames, className: 'step-frames desktop-details' }, { frames: detail.mobileFrames, className: 'step-frames mobile-details' }] : [{ frames: detail.frames, className: 'step-frames' }];
+      return <li class="step-card">
+        <a class="step-images image-open" href={src} data-image-title={title} data-image-alt={detail.alt} aria-label={`${en.gallery.open}: ${title}`} tabindex="0">
+          {frameSets.map(set => <div class={set.className}>
+            {set.frames.map(frame => <picture class="detail-frame"><source type="image/webp" srcset={publicAsset(`screenshots/details/${frame.id}.webp`)} /><img src={publicAsset(`screenshots/details/${frame.id}.png`)} width={frame.width} height={frame.height} alt={frame.alt} loading="lazy" decoding="async" /></picture>)}
+          </div>)}
+          <span class="image-expand"><Icon name="expand" /></span>
+        </a>
+        <div class="step-copy"><span class="step-number" aria-hidden="true">{number}</span><div><h3>{title}</h3><p>{description}</p></div></div>
+      </li>
+    })}
+  </ol>
+</section>

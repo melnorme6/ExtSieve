@@ -74,7 +74,7 @@ public sealed partial class LocalizationTests
         var localeSpecificMatches = new Dictionary<string, string[]>(StringComparer.Ordinal)
         {
             ["Strings.de.resx"] = ["LanguageSystem", "ThemeSystem", "AboutName", "AboutVersion"],
-            ["Strings.fr.resx"] = ["Extensions", "Extension", "AboutVersion"],
+            ["Strings.fr.resx"] = ["Extensions", "Extension", "AboutVersion", "ProfileExtensionSingularFormat", "ProfileExtensionPluralFormat"],
             ["Strings.it.resx"] = [],
             ["Strings.es.resx"] = [],
             ["Strings.pt-BR.resx"] = [],
@@ -242,6 +242,7 @@ public sealed partial class LocalizationTests
                 1234,
                 1234,
                 ByteSizeFormatter.Format(1536, localization.CurrentCulture),
+                string.Format(localization.CurrentCulture, localization["ExcludedFolderPluralFormat"], 1234),
                 1234);
             var formattedCount = 1234.ToString("N0", localization.CurrentCulture);
 

@@ -1,0 +1,21 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtSieve.App.ViewModels" x:Class="ExtSieve.App.Views.ProfileExtensionDialog"
+        x:DataType="vm:ProfileExtensionViewModel" Title="{Binding Title}"
+        Width="440" Height="290" MinWidth="380" MinHeight="280" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}">
+  <Grid Margin="20" RowDefinitions="*,Auto" RowSpacing="12">
+    <ScrollViewer><StackPanel Spacing="10">
+      <TextBlock Text="{Binding Help}" TextWrapping="Wrap" />
+      <TextBox x:Name="ExtensionBox" Text="{Binding Input, Mode=TwoWay}" IsEnabled="{Binding CanEnterKey}"
+               AutomationProperties.Name="{Binding ExtensionLabel}" />
+      <CheckBox x:Name="ExtensionlessBox" Content="{Binding ExtensionlessLabel}" IsChecked="{Binding Extensionless, Mode=TwoWay}"
+                AutomationProperties.Name="{Binding ExtensionlessLabel}" />
+      <TextBlock Text="{Binding Error}" Foreground="{DynamicResource ErrorBrush}" TextWrapping="Wrap"
+                 AutomationProperties.LiveSetting="Polite" />
+    </StackPanel></ScrollViewer>
+    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Classes="secondary" Content="{Binding CancelLabel}" IsCancel="True" Click="OnCancel" />
+      <Button Classes="secondary" Content="{Binding AddLabel}" IsEnabled="{Binding CanAdd}" IsDefault="True" Click="OnAdd" />
+    </StackPanel>
+  </Grid>
+</Window>

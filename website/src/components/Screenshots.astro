@@ -1,0 +1,15 @@
+---
+import { en } from '../content/en';
+import light from '../assets/screenshots/main-light.png';
+import dark from '../assets/screenshots/main-dark.png';
+import { imageAsset, publicAsset } from '../lib/paths';
+import Icon from './Icon.astro';
+const images = [{ image: light, label: en.screenshots.light, alt: en.screenshots.lightAlt }, { image: dark, label: en.screenshots.dark, alt: en.screenshots.darkAlt }];
+---
+
+<section id="screenshots" class="section container" aria-labelledby="screenshots-title">
+  <h2 id="screenshots-title">{en.screenshots.title}</h2>
+  <div class="showcase">
+    {images.map(({ image, label, alt }) => <figure class="showcase-card"><a class="image-open" href={imageAsset(image.src)} data-image-title={label} data-image-alt={alt} aria-label={`${en.gallery.open}: ${label}`} tabindex="0"><picture><source type="image/webp" srcset={publicAsset(`screenshots/details/${label.toLowerCase()}-full.webp`)} /><img src={imageAsset(image.src)} width={image.width} height={image.height} alt={alt} loading="lazy" decoding="async" /></picture><span class="image-expand"><Icon name="expand" /></span></a><figcaption><span>{label}</span></figcaption></figure>)}
+  </div>
+</section>

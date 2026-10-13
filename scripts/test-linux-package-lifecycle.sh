@@ -21,6 +21,12 @@ portable_archive=$9
 portable_checksum=${10}
 portable_manifest=${11}
 
+product_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+product_version=$(sed -n 's/.*<Version>\([^<]*\)<\/Version>.*/\1/p' "$product_directory/Directory.Build.props")
+[[ $product_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+IFS=. read -r major minor patch <<< "$product_version"
+upgrade_version="$major.$minor.$((patch + 1))"
+
 fail() {
     printf 'Error: %s\n' "$1" >&2
     exit 1
@@ -174,7 +180,7 @@ case "$family" in
         apt-get install --yes --no-install-recommends \
             binutils desktop-file-utils file gzip procps tar unzip xauth xvfb
         apt-get install --yes "$package"
-        test "$(dpkg-query --show --showformat='${Version}' extsieve)" = 1.0.0-1
+        test "$(dpkg-query --show --showformat='${Version}' extsieve)" = "$product_version-1"
         test "$(dpkg-query --show --showformat='${Architecture}' extsieve)" = amd64
         test "$(dpkg-query --search /usr/bin/extsieve)" = \
             'extsieve: /usr/bin/extsieve'
@@ -192,10 +198,10 @@ case "$family" in
             binutils desktop-file-utils file gzip procps-ng tar unzip \
             xorg-x11-server-Xvfb xorg-x11-xauth
         dnf --setopt=tsflags= install --assumeyes "$package"
-        test "$(rpm --query --queryformat '%{VERSION}' extsieve)" = 1.0.0
+        test "$(rpm --query --queryformat '%{VERSION}' extsieve)" = "$product_version"
         test "$(rpm --query --queryformat '%{ARCH}' extsieve)" = x86_64
         test "$(rpm --query --file /usr/bin/extsieve)" = \
-            extsieve-1.0.0-1.x86_64
+            "extsieve-$product_version-1.x86_64"
         printf '%s\n' 'RESOLVED_RPM_NATIVE_DEPENDENCIES:'
         rpm --query --all --queryformat '%{NAME}\t%{VERSION}-%{RELEASE}\n' |
             grep -E '^(libicu|openssl-libs|glibc|libstdc\+\+|libgcc|krb5-libs)[[:space:]]'
@@ -229,9 +235,14 @@ report_native_versions
 
 settings_directory=/root/.local/share/ExtSieve
 settings_file=$settings_directory/settings.json
+profiles_file=$settings_directory/profiles.json
+exclusions_file=$settings_directory/exclusions.json
 user_archive=/root/extsieve-user-archive.zip
 mkdir -p "$settings_directory"
 printf '{"theme":"Dark"}\n' > "$settings_file"
+printf '{"SchemaVersion":1,"Profiles":[{"Name":"Docs","ExtensionKeys":[".txt"]}]}\n' > "$profiles_file"
+printf '{"SchemaVersion":1,"Roots":{}}\n' > "$exclusions_file"
+local_data_hashes=$(sha256sum "$profiles_file" "$exclusions_file")
 printf 'owner data\n' > "$user_archive"
 
 smoke_directory=/tmp/extsieve-package-smoke-tool
@@ -249,12 +260,12 @@ run_archive_smoke "$smoke_directory" /root/extsieve-package-smoke
 case "$family" in
     deb)
         apt-get install --yes "$upgrade_package"
-        test "$(dpkg-query --show --showformat='${Version}' extsieve)" = 1.0.1-1
+        test "$(dpkg-query --show --showformat='${Version}' extsieve)" = "$upgrade_version-1"
         test "$(dpkg-query --show --showformat='${binary:Package}\n' extsieve | wc -l)" -eq 1
         ;;
     rpm)
         dnf --setopt=tsflags= upgrade --assumeyes "$upgrade_package"
-        test "$(rpm --query --queryformat '%{VERSION}' extsieve)" = 1.0.1
+        test "$(rpm --query --queryformat '%{VERSION}' extsieve)" = "$upgrade_version"
         test "$(rpm --query --all --queryformat '%{NAME}\n' | grep -xc extsieve)" -eq 1
         ;;
 esac
@@ -278,6 +289,7 @@ test ! -e /usr/share/icons/hicolor/256x256/apps/extsieve.png
 test ! -e /usr/share/doc/extsieve
 test -f "$settings_file"
 grep -Fq '"theme":"Dark"' "$settings_file"
+printf '%s\n' "$local_data_hashes" | sha256sum --check -
 test -f "$user_archive"
 test -f /root/extsieve-package-smoke/preserve.zip
 test -f /root/extsieve-package-smoke/flat.zip

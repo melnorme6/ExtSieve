@@ -7,5 +7,6 @@ public interface IFolderScanner
     Task<ScanResult> ScanAsync(
         string sourceDirectory,
         IProgress<long>? discoveredFileProgress,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        FolderExclusionSet? exclusions = null);
 }

@@ -6,20 +6,26 @@ namespace ExtSieve.Core.Services;
 
 public sealed class FolderScanner : IFolderScanner
 {
+    private readonly IDirectoryEntrySource _entries;
+
+    public FolderScanner(IDirectoryEntrySource? entries = null) => _entries = entries ?? new DirectoryEntrySource();
+
     public Task<ScanResult> ScanAsync(
         string sourceDirectory,
         IProgress<long>? discoveredFileProgress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        FolderExclusionSet? exclusions = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceDirectory);
         return Task.Run(
-            () => Scan(sourceDirectory, discoveredFileProgress, cancellationToken),
+            () => Scan(sourceDirectory, discoveredFileProgress, exclusions ?? new FolderExclusionSet([]), cancellationToken),
             cancellationToken);
     }
 
-    private static ScanResult Scan(
+    private ScanResult Scan(
         string sourceDirectory,
         IProgress<long>? discoveredFileProgress,
+        FolderExclusionSet exclusions,
         CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -48,6 +54,7 @@ public sealed class FolderScanner : IFolderScanner
             EnumerateDirectory(
                 directory,
                 root,
+                exclusions,
                 pendingDirectories,
                 files,
                 warnings,
@@ -71,9 +78,10 @@ public sealed class FolderScanner : IFolderScanner
         return new ScanResult(files.ToArray(), groups, warnings.ToArray(), stopwatch.Elapsed);
     }
 
-    private static void EnumerateDirectory(
+    private void EnumerateDirectory(
         string directory,
         string root,
+        FolderExclusionSet exclusions,
         Stack<string> pendingDirectories,
         List<ScannedFile> files,
         List<ScanWarning> warnings,
@@ -84,7 +92,13 @@ public sealed class FolderScanner : IFolderScanner
         IEnumerator<string>? enumerator = null;
         try
         {
-            enumerator = Directory.EnumerateFileSystemEntries(directory).GetEnumerator();
+            // Recheck queued directories before opening them; links may have changed since discovery.
+            if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0)
+            {
+                warnings.Add(new ScanWarning(ScanWarningKind.LinkSkipped, directory));
+                return;
+            }
+            enumerator = _entries.EnumerateEntries(directory).GetEnumerator();
             while (MoveNext(enumerator, directory, warnings))
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -92,6 +106,7 @@ public sealed class FolderScanner : IFolderScanner
                 ProcessEntry(
                     path,
                     root,
+                    exclusions,
                     pendingDirectories,
                     files,
                     warnings,
@@ -128,6 +143,7 @@ public sealed class FolderScanner : IFolderScanner
     private static void ProcessEntry(
         string path,
         string root,
+        FolderExclusionSet exclusions,
         Stack<string> pendingDirectories,
         List<ScannedFile> files,
         List<ScanWarning> warnings,
@@ -152,7 +168,7 @@ public sealed class FolderScanner : IFolderScanner
 
             if ((attributes & FileAttributes.Directory) != 0)
             {
-                pendingDirectories.Push(fullPath);
+                if (!exclusions.Contains(Path.GetRelativePath(root, fullPath))) pendingDirectories.Push(fullPath);
                 return;
             }
 

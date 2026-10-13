@@ -1,6 +1,10 @@
 [CmdletBinding()]
 param(
-    [string] $InnoCompilerPath
+    [string] $InnoCompilerPath,
+    [string] $ArtifactDirectory,
+    [string] $WorkDirectory,
+    [switch] $PublicReleaseBuild,
+    [string] $PublicSourceRevision
 )
 
 Set-StrictMode -Version Latest
@@ -147,8 +151,12 @@ $productDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $solutionPath = Join-Path $productDirectory 'ExtSieve.sln'
 $projectPath = Join-Path $productDirectory 'src\ExtSieve.App\ExtSieve.App.csproj'
 $buildPropsPath = Join-Path $productDirectory 'Directory.Build.props'
-$artifactsDirectory = Join-Path $productDirectory 'artifacts'
 $installerScriptPath = Join-Path $productDirectory 'packaging\windows\ExtSieve.iss'
+$provenanceArguments = @(
+    "-p:PublicReleaseBuild=$($PublicReleaseBuild.IsPresent.ToString().ToLowerInvariant())",
+    "-p:PublicSourceRevision=$PublicSourceRevision"
+)
+Invoke-DotNet -Arguments (@('msbuild', $projectPath, '-target:ValidatePublicSourceRevision') + $provenanceArguments)
 
 [xml] $buildProps = Get-Content -LiteralPath $buildPropsPath -Raw
 $version = [string] $buildProps.Project.PropertyGroup.Version
@@ -156,47 +164,76 @@ if ([string]::IsNullOrWhiteSpace($version)) {
     throw 'Directory.Build.props does not define the product Version.'
 }
 
+if ([string]::IsNullOrWhiteSpace($ArtifactDirectory)) {
+    $ArtifactDirectory = Join-Path $productDirectory "artifacts\releases\$version\candidate"
+}
+if ([string]::IsNullOrWhiteSpace($WorkDirectory)) {
+    $WorkDirectory = Join-Path ([IO.Path]::GetTempPath()) ("extsieve-publish-windows-" + [Guid]::NewGuid().ToString('N'))
+}
+$artifactsDirectory = [IO.Path]::GetFullPath($ArtifactDirectory)
+$workDirectoryPath = [IO.Path]::GetFullPath($WorkDirectory)
+foreach ($root in @($artifactsDirectory, $workDirectoryPath)) {
+    $ancestor = $root
+    while ($ancestor) {
+        if (Test-Path -LiteralPath $ancestor) {
+            $item = Get-Item -LiteralPath $ancestor -Force
+            if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                throw "Output ancestor must be an ordinary directory: $ancestor"
+            }
+        }
+        $ancestor = [IO.Path]::GetDirectoryName($ancestor)
+    }
+}
+if (Test-Path -LiteralPath $workDirectoryPath) {
+    throw 'WorkDirectory already exists. Use a fresh task directory; existing work is preserved.'
+}
+if ($artifactsDirectory -eq $workDirectoryPath -or
+    $artifactsDirectory.StartsWith($workDirectoryPath + '\', [StringComparison]::OrdinalIgnoreCase) -or
+    $workDirectoryPath.StartsWith($artifactsDirectory + '\', [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'ArtifactDirectory and WorkDirectory must be separate, non-overlapping directories.'
+}
+$stagingDirectory = Join-Path $workDirectoryPath 'output'
 $runtimeIdentifier = 'win-x64'
 $packageName = "ExtSieve-$version-$runtimeIdentifier"
-$packageDirectory = Join-Path $artifactsDirectory $packageName
-$archivePath = Join-Path $artifactsDirectory "$packageName.zip"
-$manifestPath = Join-Path $artifactsDirectory "$packageName.manifest.sha256"
+$packageDirectory = Join-Path $workDirectoryPath $packageName
+$archivePath = Join-Path $stagingDirectory "$packageName.zip"
+$manifestPath = Join-Path $stagingDirectory "$packageName.manifest.sha256"
 $archiveChecksumPath = "$archivePath.sha256"
-$installerPath = Join-Path $artifactsDirectory "ExtSieve-Setup-$version-$runtimeIdentifier.exe"
-$installerManifestPath = Join-Path $artifactsDirectory "ExtSieve-Setup-$version-$runtimeIdentifier.manifest.sha256"
+$installerPath = Join-Path $stagingDirectory "ExtSieve-Setup-$version-$runtimeIdentifier.exe"
+$installerManifestPath = Join-Path $stagingDirectory "ExtSieve-Setup-$version-$runtimeIdentifier.manifest.sha256"
 $installerChecksumPath = "$installerPath.sha256"
-$innoCompiler = Resolve-InnoCompiler $InnoCompilerPath
-
-New-Item -ItemType Directory -Path $artifactsDirectory -Force | Out-Null
-foreach ($path in @(
-    $packageDirectory,
+$outputPaths = @(
     $archivePath,
     $manifestPath,
     $archiveChecksumPath,
     $installerPath,
     $installerManifestPath,
     $installerChecksumPath
-)) {
-    if (Test-Path -LiteralPath $path) {
-        Remove-Item -LiteralPath $path -Recurse -Force
+)
+foreach ($path in $outputPaths) {
+    $destination = Join-Path $artifactsDirectory ([IO.Path]::GetFileName($path))
+    if (Test-Path -LiteralPath $destination) {
+        throw "Artifact already exists and will be preserved: $destination. Select a fresh ArtifactDirectory."
     }
 }
+$innoCompiler = Resolve-InnoCompiler $InnoCompilerPath
+[IO.Directory]::CreateDirectory($stagingDirectory) | Out-Null
 
 Push-Location $productDirectory
 try {
-    Invoke-DotNet -Arguments @('restore', $solutionPath, '--locked-mode')
-    Invoke-DotNet -Arguments @(
+    Invoke-DotNet -Arguments (@('restore', $solutionPath, '--locked-mode') + $provenanceArguments)
+    Invoke-DotNet -Arguments (@(
         'build', $solutionPath,
         '--configuration', 'Release',
         '--no-restore'
-    )
-    Invoke-DotNet -Arguments @(
-        'test', $solutionPath,
+    ) + $provenanceArguments)
+    Invoke-DotNet -Arguments (@(
+        'test', '--solution', $solutionPath,
         '--configuration', 'Release',
         '--no-build',
         '--no-restore'
-    )
-    Invoke-DotNet -Arguments @(
+    ) + $provenanceArguments)
+    Invoke-DotNet -Arguments (@(
         'publish', $projectPath,
         '--configuration', 'Release',
         '--runtime', $runtimeIdentifier,
@@ -208,7 +245,7 @@ try {
         '-p:PublishAot=false',
         '-p:DebugSymbols=false',
         '-p:DebugType=None'
-    )
+    ) + $provenanceArguments)
 }
 finally {
     Pop-Location
@@ -223,6 +260,9 @@ foreach ($document in @(
 )) {
     Copy-Item -LiteralPath (Join-Path $productDirectory $document) -Destination $packageDirectory
 }
+$packageDocsDirectory = Join-Path $packageDirectory 'docs'
+New-Item -ItemType Directory -Path $packageDocsDirectory | Out-Null
+Copy-Item -LiteralPath (Join-Path $productDirectory 'docs\LOCAL_DATA.md') -Destination $packageDocsDirectory
 
 $assetsPath = Join-Path $productDirectory 'src\ExtSieve.App\obj\project.assets.json'
 $dependenciesPath = Join-Path $packageDirectory 'ExtSieve.App.deps.json'
@@ -349,7 +389,7 @@ $archiveHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.T
 & $innoCompiler `
     "/DAppVersion=$version" `
     "/DPayloadDir=$packageDirectory" `
-    "/DArtifactDir=$artifactsDirectory" `
+    "/DArtifactDir=$stagingDirectory" `
     '/Qp' `
     $installerScriptPath
 if ($LASTEXITCODE -ne 0) {
@@ -367,6 +407,16 @@ $installerHash = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Ha
     [Text.UTF8Encoding]::new($false)
 )
 
+[IO.Directory]::CreateDirectory($artifactsDirectory) | Out-Null
+foreach ($path in $outputPaths) {
+    $destination = Join-Path $artifactsDirectory ([IO.Path]::GetFileName($path))
+    [IO.File]::Copy($path, $destination, $false)
+    if ((Get-FileHash -LiteralPath $path).Hash -ne (Get-FileHash -LiteralPath $destination).Hash) {
+        throw "Artifact promotion verification failed: $destination"
+    }
+}
+Write-Host "Artifact directory: $artifactsDirectory"
+Write-Host "Work directory (retain until verification, then remove task-owned payload): $workDirectoryPath"
 Write-Host "Package directory: $packageDirectory"
 Write-Host "Package archive:   $archivePath"
 Write-Host "File manifest:     $manifestPath"

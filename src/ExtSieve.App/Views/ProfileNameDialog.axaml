@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ExtSieve.App.ViewModels" x:Class="ExtSieve.App.Views.ProfileNameDialog"
+        x:DataType="vm:ProfileNameViewModel" Title="{Binding Title}"
+        Width="480" MinWidth="420" Classes.compact="{Binding IsCompact}" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}">
+  <Window.Styles>
+    <Style Selector="Window">
+      <Setter Property="Height" Value="360" />
+      <Setter Property="MinHeight" Value="320" />
+    </Style>
+    <Style Selector="Window.compact">
+      <Setter Property="Height" Value="NaN" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="SizeToContent" Value="Height" />
+    </Style>
+  </Window.Styles>
+  <DockPanel Margin="20">
+    <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Classes="secondary" Content="{Binding CancelLabel}" IsCancel="True" Click="OnCancel" />
+      <Button Classes="primary" Content="{Binding SaveLabel}" IsEnabled="{Binding CanSave}" IsDefault="True" Click="OnSave" />
+    </StackPanel>
+    <ScrollViewer><StackPanel Spacing="10">
+      <TextBlock Text="{Binding Help}" IsVisible="{Binding HasHelp}" TextWrapping="Wrap" />
+      <TextBlock Text="{Binding NameLabel}" FontWeight="SemiBold" />
+      <TextBox x:Name="NameBox" Text="{Binding Name, Mode=TwoWay}" MaxLength="80" AutomationProperties.Name="{Binding NameLabel}" />
+      <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}" Foreground="{DynamicResource ErrorBrush}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+      <TextBlock Text="{Binding ExtensionSummary}" IsVisible="{Binding ShowExtensions}" FontWeight="SemiBold" />
+      <TextBlock Text="{Binding ExtensionDisplay}" IsVisible="{Binding ShowExtensions}" TextWrapping="Wrap" />
+    </StackPanel></ScrollViewer>
+  </DockPanel>
+</Window>

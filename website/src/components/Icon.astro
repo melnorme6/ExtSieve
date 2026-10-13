@@ -1,0 +1,25 @@
+---
+import scan from '../assets/icons/tabler/scan.svg?raw';
+import filter from '../assets/icons/tabler/filter.svg?raw';
+import archive from '../assets/icons/tabler/archive.svg?raw';
+import sun from '../assets/icons/tabler/sun.svg?raw';
+import moon from '../assets/icons/tabler/moon.svg?raw';
+import expand from '../assets/icons/tabler/arrows-maximize.svg?raw';
+import menu from '../assets/icons/tabler/menu-2.svg?raw';
+import arrow from '../assets/icons/tabler/arrow-right.svg?raw';
+import windows from '../assets/icons/tabler/brand-windows.svg?raw';
+import linux from '../assets/icons/tabler/terminal-2.svg?raw';
+import close from '../assets/icons/tabler/x.svg?raw';
+import zoom from '../assets/icons/tabler/zoom-in.svg?raw';
+import external from '../assets/icons/tabler/external-link.svg?raw';
+import device from '../assets/icons/tabler/device-desktop.svg?raw';
+import noAccount from '../assets/icons/tabler/user-off.svg?raw';
+import noTelemetry from '../assets/icons/tabler/chart-bar-off.svg?raw';
+import license from '../assets/icons/tabler/license.svg?raw';
+import download from '../assets/icons/tabler/download.svg?raw';
+
+const icons = { scan, filter, archive, sun, moon, expand, menu, arrow, windows, linux, close, zoom, external, device, noAccount, noTelemetry, license, download };
+interface Props { name: keyof typeof icons; }
+const { name } = Astro.props;
+---
+<span class="icon" aria-hidden="true"><Fragment set:html={icons[name]} /></span>

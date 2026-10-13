@@ -133,6 +133,13 @@ public sealed class ExtensionGroupListViewModel : ObservableObject, IDisposable
         }
     }
 
+    public void ApplyProfile(ExtensionProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var keys = profile.ExtensionKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        ApplySelection(row => keys.Contains(row.ExtensionKey));
+    }
+
     public void Dispose()
     {
         _localization.CultureChanged -= OnCultureChanged;
@@ -200,7 +207,9 @@ public sealed class ExtensionGroupListViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void ApplyGlobalSelection(bool isSelected)
+    private void ApplyGlobalSelection(bool isSelected) => ApplySelection(_ => isSelected);
+
+    private void ApplySelection(Func<ExtensionGroupRowViewModel, bool> selection)
     {
         var changed = false;
         _isApplyingGlobalSelection = true;
@@ -208,6 +217,7 @@ public sealed class ExtensionGroupListViewModel : ObservableObject, IDisposable
         {
             foreach (var row in _allRows)
             {
+                var isSelected = selection(row);
                 if (row.IsSelected == isSelected)
                 {
                     continue;

@@ -1,0 +1,62 @@
+---
+import { en } from '../content/en';
+import { publicAsset } from '../lib/paths';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import themeBootstrap from '../scripts/theme-bootstrap.js?raw';
+import { canonicalUrl, socialImageUrl, readSiteSettings } from '../lib/site-settings';
+import type { ReleaseResult } from '../lib/releases';
+import { softwareApplication, serializeJsonLd } from '../lib/seo';
+import light from '../assets/screenshots/main-light.png';
+import { imageAsset } from '../lib/paths';
+
+interface Props { release: ReleaseResult }
+const { release } = Astro.props;
+const settings = readSiteSettings(process.env);
+const schema = serializeJsonLd(softwareApplication(release, new URL(imageAsset(light.src), canonicalUrl).href));
+// is:inline scripts are outside the bundler: authorize their exact emitted bytes.
+if (import.meta.env.PROD && !Astro.csp) throw new Error('Static production builds require CSP.');
+for (const script of [themeBootstrap, schema]) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(script));
+  Astro.csp?.insertScriptHash(`sha256-${btoa(String.fromCharCode(...new Uint8Array(digest)))}`);
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline set:html={themeBootstrap} />
+    <meta name="description" content={en.description} />
+    {!settings.indexable && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    {settings.verification && <meta name="google-site-verification" content={settings.verification} />}
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="sitemap" type="application/xml" href={publicAsset('sitemap.xml')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={en.name} />
+    <meta property="og:title" content={en.title} />
+    <meta property="og:description" content={en.description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:alt" content="ExtSieve logo and headline: Filter. Organize. Archive." />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={en.title} />
+    <meta name="twitter:description" content={en.description} />
+    <meta name="twitter:image" content={socialImageUrl} />
+    <meta name="twitter:image:alt" content="ExtSieve logo and headline: Filter. Organize. Archive." />
+    <script is:inline type="application/ld+json" set:html={schema} />
+    <link rel="icon" type="image/png" href={publicAsset('icons/extsieve.png')} />
+    <link rel="preload" href={publicAsset('fonts/InterVariable-latin.woff2')} as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href={publicAsset('fonts/inter.css')} />
+    <title>{en.title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content" tabindex="0">{en.skipLink}</a>
+    <slot />
+    <script>import '../scripts/interactions';</script>
+  </body>
+</html>

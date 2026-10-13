@@ -1,0 +1,17 @@
+---
+import { en } from '../content/en';
+import Icon from './Icon.astro';
+const icons = ['scan', 'filter', 'archive'] as const;
+---
+
+<section id="features" class="section section-surface" aria-labelledby="features-title">
+  <div class="container">
+    <h2 id="features-title" class="section-title-with-description">{en.features.title}</h2>
+    <p class="section-description">{en.features.description}</p>
+    <div class="cards">
+      {en.features.cards.map(({ title, description }, index) => (
+        <article class="card feature-card"><span class="feature-icon"><Icon name={icons[index] ?? 'scan'} /></span><h3>{title}</h3><p>{description}</p></article>
+      ))}
+    </div>
+  </div>
+</section>

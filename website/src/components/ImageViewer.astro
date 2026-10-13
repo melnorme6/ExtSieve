@@ -1,0 +1,9 @@
+---
+import { en } from '../content/en';
+import Icon from './Icon.astro';
+---
+<dialog id="image-viewer" class="image-viewer" aria-labelledby="image-viewer-title">
+  <div class="viewer-header"><h2 id="image-viewer-title"></h2><button type="button" class="control" id="image-close" autofocus>{en.gallery.close}<Icon name="close" /></button></div>
+  <div class="viewer-scroll" tabindex="0" role="region" aria-label={en.gallery.viewerLabel}><img id="viewer-image" alt="" /></div>
+  <div class="viewer-actions"><button type="button" class="control" id="image-zoom" aria-pressed="false"><Icon name="zoom" />{en.gallery.zoom}</button><a id="image-original" tabindex="0">{en.gallery.original}<Icon name="external" /></a></div>
+</dialog>

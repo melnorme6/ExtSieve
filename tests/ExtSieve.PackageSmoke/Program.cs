@@ -32,11 +32,15 @@ internal static class Program
             await File.WriteAllBytesAsync(
                 Path.Combine(nestedDirectory, "image.bin"),
                 [0x00, 0x01, 0x7f, 0x80, 0xff]);
+            var excludedDirectory = Path.Combine(sourceDirectory, "ignored", "deep");
+            Directory.CreateDirectory(excludedDirectory);
+            await File.WriteAllTextAsync(Path.Combine(excludedDirectory, "excluded.txt"), "excluded\n");
 
             var scan = await new FolderScanner().ScanAsync(
                 sourceDirectory,
                 discoveredFileProgress: null,
-                CancellationToken.None);
+                CancellationToken.None,
+                new FolderExclusionSet(["ignored"]));
             Ensure(scan.Warnings.Count == 0, "The package smoke scan returned warnings.");
             Ensure(scan.Files.Count == 3, "The package smoke scan did not find three files.");
 

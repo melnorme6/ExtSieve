@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Features from '../components/Features.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import Screenshots from '../components/Screenshots.astro';
+import Download from '../components/Download.astro';
+import Footer from '../components/Footer.astro';
+import ImageViewer from '../components/ImageViewer.astro';
+import { en } from '../content/en';
+import { getBuildRelease } from '../lib/releases';
+import { presentDownloads } from '../lib/download-presentation';
+import { readSiteSettings } from '../lib/site-settings';
+const release = await getBuildRelease();
+const settings = readSiteSettings(process.env);
+---
+
+<BaseLayout release={release}>
+  <Header />
+  <main id="main-content" tabindex="-1">
+    {!settings.indexable && <p class="preview-notice container">{en.previewNotice}</p>}
+    {settings.fixture && <p class="preview-notice container">Automated test fixture. Synthetic release data; download links are not for use.</p>}
+    <Hero />
+    <Features />
+    <HowItWorks />
+    <Screenshots />
+    <Download release={presentDownloads(release)} />
+  </main>
+  <Footer />
+  <ImageViewer />
+</BaseLayout>

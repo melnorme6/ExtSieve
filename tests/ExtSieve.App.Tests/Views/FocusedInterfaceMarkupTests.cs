@@ -13,7 +13,30 @@ public sealed class FocusedInterfaceMarkupTests
         var document = XDocument.Load(ProductPath("src", "ExtSieve.App", "MainWindow.axaml"));
         var markup = document.ToString(SaveOptions.DisableFormatting);
 
-        Assert.Empty(document.Descendants(Presentation + "ComboBox"));
+        var profileSelector = Assert.Single(document.Descendants(XName.Get("CommandComboBox", "using:ExtSieve.App.Controls")));
+        Assert.Equal("{Binding Profiles.Profiles}", (string?)profileSelector.Attribute("ItemsSource"));
+        Assert.Equal("{Binding Profiles.SelectedProfile, Mode=OneWay}", (string?)profileSelector.Attribute("SelectedItem"));
+        Assert.Equal("{Binding SelectProfileCommand}", (string?)profileSelector.Attribute("SelectionCommittedCommand"));
+        Assert.DoesNotContain("ApplyProfile", markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProfileNotice", markup, StringComparison.Ordinal);
+        var clearProfile = Assert.Single(document.Descendants(Presentation + "Button"),
+            element => (string?)element.Attribute(Xaml + "Name") == "ClearProfileButton");
+        Assert.Equal("{Binding ClearProfileCommand}", (string?)clearProfile.Attribute("Command"));
+        Assert.Equal("{Binding ClearProfileLabel}", (string?)clearProfile.Attribute("ToolTip.Tip"));
+        Assert.Equal("{Binding ClearProfileLabel}", (string?)clearProfile.Attribute("AutomationProperties.Name"));
+        Assert.Contains("TablerX", clearProfile.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("DeleteProfile", markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("TablerTrash", markup, StringComparison.Ordinal);
+        var exclusions = Assert.Single(document.Descendants(Presentation + "Button"),
+            element => (string?)element.Attribute(Xaml + "Name") == "ExclusionsButton");
+        Assert.Equal("{Binding EditExclusionsCommand}", (string?)exclusions.Attribute("Command"));
+        Assert.Equal("{Binding ExclusionsHelp}", (string?)exclusions.Attribute("ToolTip.Tip"));
+        Assert.Equal("{Binding ExclusionsHelp}", (string?)exclusions.Attribute("AutomationProperties.Name"));
+        Assert.Contains("TablerFolderMinus", exclusions.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("ExclusionsSummary", markup, StringComparison.Ordinal);
+        var sourceRow = Assert.Single(document.Descendants(XName.Get("RoundedContentBorder", "using:ExtSieve.App.Controls")),
+            element => (string?)element.Attribute(Xaml + "Name") == "SourceRow");
+        Assert.Equal("1", (string?)sourceRow.Attribute("Grid.Row"));
         Assert.Empty(document.Descendants(Presentation + "PathIcon"));
         Assert.Single(document.Descendants(Presentation + "CheckBox")
 , element => (string?)element.Attribute("IsThreeState") == "True");
@@ -158,7 +181,11 @@ public sealed class FocusedInterfaceMarkupTests
             (string?)clearButton.Attribute("AutomationProperties.Name"));
         Assert.Contains(clearButton.Descendants().Where(element => element.Name.LocalName == "TablerIcon"), icon =>
             (string?)icon.Attribute("Data") == "{StaticResource TablerX}");
-        Assert.Equal("10,5,38,5", (string?)filterTextBox.Attribute("Padding"));
+        Assert.Equal("compoundMain", (string?)filterTextBox.Attribute("Classes"));
+        Assert.Equal("{Binding IsFilterClearVisible}", (string?)filterTextBox.Attribute("Classes.compoundLeft"));
+        Assert.Same(filterTextBox.Parent, clearButton.Parent);
+        Assert.Equal("*,Auto", (string?)filterTextBox.Parent?.Attribute("ColumnDefinitions"));
+        Assert.Equal("1", (string?)clearButton.Attribute("Grid.Column"));
     }
 
     [Fact]
