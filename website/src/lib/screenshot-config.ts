@@ -32,11 +32,8 @@ export const screenshotDetails = [
     ] },
 ] as const;
 
-// One phone framing shared by both themes; desktop/tablet keep the complete window.
-export const heroFraming = { left: 20, top: 79, width: 572, height: 534 } as const;
 export const screenshotCrops = [
   ...screenshotDetails,
   ...screenshotDetails.flatMap(detail => detail.frames.map(frame => ({ ...frame, source: detail.source }))),
   ...screenshotDetails.flatMap(detail => 'mobileFrames' in detail ? detail.mobileFrames.filter(frame => frame.id !== 'archive-save').map(frame => ({ ...frame, source: detail.source })) : []),
-  ...(['light', 'dark'] as const).map(source => ({ ...heroFraming, id: `hero-${source}`, source })),
 ] as const;

@@ -18,11 +18,7 @@ want, and save a clean archive without modifying the source.
 
 ## Screenshot
 
-![ExtSieve 1.1.0 main view in the Light theme](website/src/assets/screenshots/main-light.png)
-
-![ExtSieve 1.1.0 main view in the Dark theme](website/src/assets/screenshots/main-dark.png)
-
-Actual ExtSieve 1.1.0 main window — Light and Dark themes, using example folders.
+![ExtSieve 1.1.0 main window in Light and Dark themes](website/src/assets/screenshots/main-light-dark.png)
 
 ## Features
 

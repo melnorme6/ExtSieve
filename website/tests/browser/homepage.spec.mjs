@@ -42,6 +42,22 @@ for (const width of [1920, 1440, 1280, 1024, 768, 390, 375, 320]) {
         for (const row of await rows.all()) expect((await row.boundingBox()).height).toBeGreaterThanOrEqual(44);
       } else expect(schema.softwareVersion).toBeUndefined();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const hero = page.locator(`.hero-screen.theme-${colorScheme} img`);
+      const framing = await hero.evaluate(image => {
+        const bounds = image.getBoundingClientRect();
+        const frame = image.closest('.hero-window').getBoundingClientRect();
+        return {
+          width: image.naturalWidth, height: image.naturalHeight,
+          ratio: bounds.width / bounds.height,
+          inside: bounds.left >= frame.left && bounds.right <= frame.right &&
+            bounds.top >= frame.top && bounds.bottom <= frame.bottom,
+          source: image.currentSrc,
+        };
+      });
+      expect([framing.width, framing.height]).toEqual([902, 732]);
+      expect(framing.ratio).toBeCloseTo(902 / 732, 2);
+      expect(framing.inside).toBe(true);
+      expect(framing.source).toContain(`${colorScheme}-full.webp`);
       const toggle = await page.locator('.theme-toggle').boundingBox();
       expect(toggle.width).toBe(44);
       expect(toggle.height).toBe(44);
@@ -108,19 +124,23 @@ test('both hero themes load eagerly and every image area opens once', async ({ p
   await page.setViewportSize({ width:390, height:844 });
   await page.emulateMedia({ colorScheme:'light' });
   const images = [];
-  page.on('request', request => { if (/hero-(light|dark)\./.test(request.url())) images.push(request.url()); });
+  page.on('request', request => { if (/(light|dark)-full\.webp/.test(request.url())) images.push(request.url()); });
   await page.goto('./');
   await expect(page.locator('.hero-screen.theme-light img')).toBeVisible();
   await page.waitForFunction(() => document.querySelector('.hero-screen.theme-light img').naturalWidth > 0);
-  expect(images.filter(url => /hero-light\./.test(url))).toHaveLength(1);
-  expect(images.filter(url => /hero-dark\./.test(url))).toHaveLength(1);
+  expect(images.filter(url => /light-full\.webp/.test(url))).toHaveLength(1);
+  expect(images.filter(url => /dark-full\.webp/.test(url))).toHaveLength(1);
   await page.getByRole('button', {name:'Switch to dark mode'}).click();
   await page.waitForFunction(() => document.querySelector('.hero-screen.theme-dark img').naturalWidth > 0);
-  expect(images.filter(url => /hero-dark\./.test(url))).toHaveLength(1);
+  expect(images.filter(url => /dark-full\.webp/.test(url))).toHaveLength(1);
   for (const selector of ['.hero-screen.theme-dark', '.step-card a.image-open', '#screenshots a.image-open']) {
     for (const opener of await page.locator(selector).all()) {
       await opener.click();
       await expect(page.getByRole('dialog')).toBeVisible();
+      await page.waitForFunction(() => document.getElementById('viewer-image').naturalWidth > 0);
+      expect(await page.locator('#viewer-image').getAttribute('src')).toBe(new URL(await opener.getAttribute('href'), page.url()).href);
+      await page.getByRole('button', { name: 'Actual size' }).click();
+      await expect(page.locator('#image-zoom')).toHaveAttribute('aria-pressed', 'true');
       await page.keyboard.press('Escape');
       await expect(opener).toBeFocused();
     }
