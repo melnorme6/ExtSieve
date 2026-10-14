@@ -4,8 +4,8 @@
 
 | Version | Supported |
 | --- | --- |
-| 1.0.x | Yes |
-| 1.1.0 (unreleased) | Development branch |
+| 1.1.x | Supported |
+| 1.0.x | No longer supported |
 
 ## Local data
 

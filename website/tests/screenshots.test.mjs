@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { sharp, validateRectangle, cropRectangle, detailRoot, prepareScreenshots } from '../scripts/screenshot-tools.mjs';
-import { screenshotSources, screenshotDetails, screenshotCrops } from '../src/lib/screenshot-config.ts';
+import { screenshotSources, screenshotDetails, screenshotDetailsByTheme, screenshotCrops } from '../src/lib/screenshot-config.ts';
 import { en } from '../src/content/en.ts';
 
 test('source identities, dimensions and privacy metadata are pinned', async () => {
@@ -87,13 +87,32 @@ test('images retain direct full-size access without a theme menu or scroll-only 
   assert.equal(screenshotDetails.reduce((sum, detail) => sum + detail.frames.length, 0), 6);
   assert.match(html, /Switch to dark mode/);
   assert.match(html, /Switch to light mode/);
-  assert.equal([...html.matchAll(/class="image-expand"/g)].length, 7);
+  assert.equal([...html.matchAll(/class="image-expand"/g)].length, 10);
   const steps = [...html.matchAll(/<li class="step-card">([\s\S]*?)<\/li>/g)].map(match => match[1]);
   for (const step of steps) {
-    assert.equal([...step.matchAll(/<a\b/g)].length, 1, 'One full-context trigger for the whole step');
-    assert.equal([...step.matchAll(/class="image-expand"/g)].length, 1);
+    assert.equal([...step.matchAll(/<a\b/g)].length, 2, 'One full-context trigger per theme');
+    assert.equal([...step.matchAll(/class="image-expand"/g)].length, 2);
+    for (const theme of ['light', 'dark']) assert.match(step, new RegExp(`step-images image-open theme-${theme}`));
     assert.match(step, /aria-label="View full-size screenshot:/);
   }
+});
+
+test('each step and its modal target use authentic sources for their theme', async () => {
+  const html = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
+  assert.equal(new Set(screenshotCrops.map(crop => crop.id)).size, screenshotCrops.length);
+  for (const theme of ['light', 'dark']) {
+    const details = screenshotDetailsByTheme[theme];
+    assert.equal(details.length, 3);
+    for (const detail of details) {
+      assert.equal(detail.source === 'dark', theme === 'dark');
+      assert.ok(html.includes(`href="/ExtSieve/screenshots/details/${detail.id}.png"`));
+      for (const frame of [...detail.frames, ...('mobileFrames' in detail ? detail.mobileFrames : [])]) {
+        assert.equal(frame.id.endsWith('-dark'), theme === 'dark');
+        assert.ok(screenshotCrops.some(crop => crop.id === frame.id && crop.source === detail.source));
+      }
+    }
+  }
+  assert.doesNotMatch(screenshotDetailsByTheme.dark[1].alt, /cs filter is active/);
 });
 
 test('the seven approved descriptions remain exact and are included in rendered output', async () => {

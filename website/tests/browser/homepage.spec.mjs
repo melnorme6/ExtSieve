@@ -67,8 +67,8 @@ for (const width of [1920, 1440, 1280, 1024, 768, 390, 375, 320]) {
       expect(await page.locator('.site-header').evaluate(element => element.getBoundingClientRect().top)).toBe(0);
       expect(await page.locator('.feature-card').count()).toBe(3);
       for (const card of await page.locator('.step-card').all()) {
-        expect(await card.locator('a.image-open').count()).toBe(1);
-        expect(await card.locator('.image-expand').count()).toBe(1);
+        expect(await card.locator('a.image-open:visible').count()).toBe(1);
+        expect(await card.locator('.image-expand:visible').count()).toBe(1);
       }
       expect(requests.filter(url => new URL(url).origin !== 'http://127.0.0.1:4335')).toEqual([]);
       expect(await context.cookies()).toEqual([]);
@@ -133,7 +133,7 @@ test('both hero themes load eagerly and every image area opens once', async ({ p
   await page.getByRole('button', {name:'Switch to dark mode'}).click();
   await page.waitForFunction(() => document.querySelector('.hero-screen.theme-dark img').naturalWidth > 0);
   expect(images.filter(url => /dark-full\.webp/.test(url))).toHaveLength(1);
-  for (const selector of ['.hero-screen.theme-dark', '.step-card a.image-open', '#screenshots a.image-open']) {
+  for (const selector of ['.hero-screen.theme-dark', '.step-card a.image-open:visible', '#screenshots a.image-open']) {
     for (const opener of await page.locator(selector).all()) {
       await opener.click();
       await expect(page.getByRole('dialog')).toBeVisible();

@@ -32,8 +32,30 @@ export const screenshotDetails = [
     ] },
 ] as const;
 
-export const screenshotCrops = [
-  ...screenshotDetails,
-  ...screenshotDetails.flatMap(detail => detail.frames.map(frame => ({ ...frame, source: detail.source }))),
-  ...screenshotDetails.flatMap(detail => 'mobileFrames' in detail ? detail.mobileFrames.filter(frame => frame.id !== 'archive-save').map(frame => ({ ...frame, source: detail.source })) : []),
-] as const;
+export const screenshotDetailsByTheme = {
+  light: screenshotDetails,
+  dark: screenshotDetails.map(detail => ({
+    ...detail, id: `${detail.id}-dark`, source: 'dark' as const,
+    // The existing Dark original shows the unfiltered list with .cs selected.
+    ...(detail.id === 'extensions' ? {
+      height: 190,
+      alt: 'Extension filter and selection. The .cs extension is selected; .csv is not selected.',
+    } : {}),
+    frames: detail.frames.map(frame => ({
+      ...frame, id: `${frame.id}-dark`,
+      ...(frame.id === 'extensions-filter' ? { alt: 'Filter extensions above the extension list.' } : {}),
+      ...(frame.id === 'extensions-selection' ? { height: 143 } : {}),
+    })),
+    ...('mobileFrames' in detail ? {
+      mobileFrames: detail.mobileFrames.map(frame => ({ ...frame, id: `${frame.id}-dark` })),
+    } : {}),
+  })),
+} as const;
+
+export const screenshotCrops = Object.values(screenshotDetailsByTheme).flatMap(details => [
+  ...details,
+  ...details.flatMap(detail => detail.frames.map(frame => ({ ...frame, source: detail.source }))),
+  ...details.flatMap(detail => 'mobileFrames' in detail ? detail.mobileFrames
+    .filter(frame => !detail.frames.some(existing => existing.id === frame.id))
+    .map(frame => ({ ...frame, source: detail.source })) : []),
+]);

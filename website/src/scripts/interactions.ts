@@ -10,6 +10,10 @@ function updateTheme() {
     themeToggle?.setAttribute('aria-label', label);
     themeToggle?.setAttribute('title', label);
   }
+  if (viewer?.open && opener?.closest('.step-card')) {
+    const matching = opener.closest('.step-card')?.querySelector<HTMLAnchorElement>(`.step-images.theme-${effective}`);
+    if (matching) { opener = matching; updateViewerImage(matching); }
+  }
 }
 
 themeToggle?.removeAttribute('hidden');
@@ -20,7 +24,6 @@ themeToggle?.addEventListener('click', () => {
   closeNavigation();
 });
 media.addEventListener('change', updateTheme);
-updateTheme();
 
 const navigation = document.querySelector<HTMLElement>('#main-navigation');
 const navigationToggle = document.querySelector<HTMLButtonElement>('#navigation-toggle');
@@ -72,6 +75,15 @@ const viewer = document.querySelector<HTMLDialogElement>('#image-viewer');
 const image = document.querySelector<HTMLImageElement>('#viewer-image');
 const zoom = document.querySelector<HTMLButtonElement>('#image-zoom');
 let opener: HTMLAnchorElement | undefined;
+function updateViewerImage(link: HTMLAnchorElement) {
+  if (!image) return;
+  image.src = link.href;
+  image.alt = link.dataset.imageAlt ?? '';
+  const title = document.querySelector('#image-viewer-title');
+  if (title) title.textContent = link.dataset.imageTitle ?? '';
+  const original = document.querySelector<HTMLAnchorElement>('#image-original');
+  if (original) original.href = link.href;
+}
 if (viewer && image && typeof viewer.showModal === 'function') {
   for (const link of document.querySelectorAll<HTMLAnchorElement>('a.image-open')) {
     link.addEventListener('click', event => {
@@ -80,12 +92,7 @@ if (viewer && image && typeof viewer.showModal === 'function') {
       if (url.origin !== location.origin || !url.pathname.startsWith(import.meta.env.BASE_URL)) return;
       event.preventDefault();
       opener = link;
-      image.src = url.href;
-      image.alt = link.dataset.imageAlt ?? '';
-      const title = document.querySelector('#image-viewer-title');
-      if (title) title.textContent = link.dataset.imageTitle ?? '';
-      const original = document.querySelector<HTMLAnchorElement>('#image-original');
-      if (original) original.href = url.href;
+      updateViewerImage(link);
       viewer.classList.remove('actual-size');
       zoom?.setAttribute('aria-pressed', 'false');
       document.body.classList.add('viewer-open');
@@ -115,3 +122,4 @@ if (viewer && image && typeof viewer.showModal === 'function') {
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   });
 }
+updateTheme();

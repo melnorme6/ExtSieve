@@ -75,6 +75,8 @@ p { margin: 0 0 1rem; }
 .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; margin: 0 auto; padding: 0; list-style: none; }
 .step-card { padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-background); min-width: 0; }
 .step-images { display: flex; align-items: center; justify-content: center; min-height: 13rem; padding: 0.75rem; margin-bottom: 1.5rem; border: 1px solid var(--color-border); border-radius: 0.375rem; background: var(--color-surface); }
+.step-images.theme-dark { display: none; }
+:root[data-theme="dark"] .step-images.theme-dark { display: flex; }
 .step-frames { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.125rem; max-width: 100%; }
 .detail-frame { max-width: 100%; border: 1px solid #b5c3d6; }
 .detail-frame img { width: auto; max-width: 100%; }
@@ -133,6 +135,7 @@ p { margin: 0 0 1rem; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .theme-light { display: none; }
   :root:not([data-theme="light"]) .theme-dark { display: block; }
+  :root:not([data-theme="light"]) .step-images.theme-dark { display: flex; }
 }
 @media (max-width: 64rem) {
   .cards { gap: 1rem; }
